@@ -1,0 +1,43 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <properties>
+        <project.version>0.1.1</project.version>
+	<project.java.source.level>1.8</project.java.source.level>
+	<project.java.target.level>1.8</project.java.target.level>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.maven-compiler-plugin.version>3.6.1</project.maven-compiler-plugin.version>
+    </properties>
+
+    <artifactId>gummynet</artifactId>
+    <packaging>pom</packaging>
+    <groupId>com.earware</groupId>
+    <version>0.1.1</version>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>gummygin</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${project.maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${project.java.source.level}</source>
+					<target>${project.java.target.level}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+    <dependencies>
+    </dependencies>
+
+    <modules>
+        <module>gummy-gin</module>
+        <module>gummy-deep</module>
+    </modules>
+
+</project>
+

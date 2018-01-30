@@ -1,0 +1,7 @@
+target/
+bin/
+.metadata/
+.classpath
+.settings/
+.project
+junk

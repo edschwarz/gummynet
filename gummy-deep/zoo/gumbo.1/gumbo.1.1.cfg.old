@@ -1,0 +1,19 @@
+{
+  "approxHandsToPlay": 100,
+  "greedyAnnealHands": 20,
+  "maxStepsPerHandQL": 5000,
+  "rewardScaling": 0.001,
+  "gamma": 0.9,
+  "rewards": {
+	"winReward": 300,
+	"flunkPenalty": 600,
+	"lossPenalty": 0,
+	"pointlessDrawPenalty": 0,
+	"pointlessKeepPenalty": 0,
+	"goodDiscardRecommendationReward": 0,
+	"handScoreDeltaPerPointReward": 1,
+	"handScore3Bonus": 10,
+	"handScore4Bonus": 30
+   },
+  "useUI": false
+}
