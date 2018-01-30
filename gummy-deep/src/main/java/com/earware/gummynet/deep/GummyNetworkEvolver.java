@@ -182,14 +182,24 @@ public class GummyNetworkEvolver {
     private List<ScoredStats> runGeneration(Config localConfig, 
 				  String generationDqnFilePath, 
 				  GummyConfig gummyConfig) throws IOException {
+    		long starttime;
+    		long duration;
     	
     		// Learning
+		LOGGER.info("Learning stage beginning...");
+		starttime = System.currentTimeMillis();
 		List<GummyRunner.GummyRunnerStats> statsList = runBatch(localConfig,
 				generationDqnFilePath,
 				gummyConfig);
+		duration = System.currentTimeMillis() - starttime;
+		LOGGER.info("Learning stage completed, generated " + localConfig.progenyPerGeneration + " in " + duration + "ms");
 		
 		// Filter for complete flunkers
+		LOGGER.info("Filter stage beginning: filtering " + statsList.size() + " models using " + localConfig.filterHandsPerProgeny + " hands");
+		starttime = System.currentTimeMillis();
 		List<ScoredStats> scoreCard = scoreGeneration(statsList, localConfig.filterHandsPerProgeny);
+		duration = System.currentTimeMillis() - starttime;
+		LOGGER.info("Filter stage completed: filtered " + scoreCard.size() + " models from " + statsList.size() + " in " + duration + "ms");
 		
 		// re-run with survivors
 		if (scoreCard.size()>0) {
@@ -197,7 +207,11 @@ public class GummyNetworkEvolver {
 			for (ScoredStats sstats : scoreCard) {
 				statsList.add(sstats.stats);
 			}
+			LOGGER.info("Validation/scoring stage beginning: validating " + statsList.size() + " models using " + localConfig.validationHandsPerProgeny + " hands");
+			starttime = System.currentTimeMillis();
 			scoreCard = scoreGeneration(statsList, localConfig.validationHandsPerProgeny);
+			duration = System.currentTimeMillis() - starttime;
+			LOGGER.info("Filter stage completed: validated " + scoreCard.size() + " models from " + statsList.size() + " in " + duration + "ms");
 		}
 
 		// report

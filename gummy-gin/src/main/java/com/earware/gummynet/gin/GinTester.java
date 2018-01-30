@@ -153,8 +153,8 @@ public class GinTester {
 		return matches;
 	}
 	
-	private static void printCardList(List<Card> cardlist) {
+	//private static void printCardList(List<Card> cardlist) {
 	//	out.println(Card.cardListToString(cardlist));
-	}
+	//}
 	
 }
