@@ -50,6 +50,7 @@ public class GinHand {
 	public PlayerHand getPlayerHandOne() {return playingOne.getPlayerHand();}
 	public Player getPlayerTwo() {return playingTwo.getPlayer();}
 	public PlayerHand getPlayerHandTwo() {return playingTwo.getPlayerHand();}
+	public int getCurrentPlayerIndex() {return currentlyPlaying==playingOne?0:1;}
 	public Player getCurrentPlayer() {return currentlyPlaying.getPlayer();}
 	public PlayerHand getCurrentPlayerHand() {return currentlyPlaying.getPlayerHand();}
 	public Card getDiscard() {return discard;}
@@ -214,8 +215,8 @@ public class GinHand {
 			hand.playingTwo.setPlayerHand(new PlayerHand(new ArrayList<Card>(this.playingTwo.getPlayerHand().getCards())));
 		}
 		
-		if (currentlyPlaying!=null) {
-			if (currentlyPlaying.equals(playingOne)) {
+		if (this.currentlyPlaying!=null) {
+			if (this.currentlyPlaying.equals(this.playingOne)) {
 				hand.currentlyPlaying = hand.playingOne;
 			} else {
 				hand.currentlyPlaying = hand.playingTwo;			

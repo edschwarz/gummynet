@@ -515,6 +515,8 @@ public class GummyNetworkEvolver {
 					config.useBot=Boolean.parseBoolean(args[++i]);
 				} else if (flag.equals("v") && args.length>i+1) {
 					config.validationHandsPerProgeny=Integer.parseInt(args[++i]);
+				} else if (flag.equals("f") && args.length>i+1) {
+					config.filterHandsPerProgeny=Integer.parseInt(args[++i]);
 				} else {
 					LOGGER.warning("unknown flag: " + arg); 
 					printUsage();

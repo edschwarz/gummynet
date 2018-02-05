@@ -153,15 +153,15 @@ public abstract class GummyMDP implements MDP<GummyState, Integer, DiscreteSpace
         double winReward = 300.0;
         double lossPenalty = 50.0;
 		double flunkPenalty = 200.0; 
-        double handScoreDeltaPerPointReward = 2.0;  // for every "point" CHANGE (up or down) in GinTester.score(myHand) 
-		double pointlessDrawPenalty=30; // drawing when it doesn't help
-		double pointlessKeepPenalty=4; // reccomending keep when it doesn't help
+        double handScoreDeltaPerPointReward = 1.0;  // for every "point" CHANGE (up or down) in GinTester.score(myHand) 
+		double pointlessDrawPenalty=1.0; // drawing when it doesn't help
+		double pointlessKeepPenalty=0.1; // reccomending keep when it doesn't help
+		double goodDiscardRecommendationReward=0.1; // keeping when it doesn't help
         double handScoreKeepalivePerPointReward = 0;  // for every "point" in GinTester.score(myHand), each hand 
         double discardStatusQuoPerPointReward = 0;  // Discarder gets a reward for preserving 
-		double goodDiscardRecommendationReward=0; // keeping when it doesn't help
 
-		double handScore3Bonus=5;  // used in scoring, not directly a reward
-		double handScore4Bonus=10;  // used in scoring, not directly a reward
+		double handScore3Bonus=10;  // used in scoring, not directly a reward
+		double handScore4Bonus=30;  // used in scoring, not directly a reward
 
     		public double getPointlessKeepPenalty() {return pointlessKeepPenalty;}
 		public void setPointlessKeepPenalty(double pointlessKeepPenalty) {this.pointlessKeepPenalty = pointlessKeepPenalty;}

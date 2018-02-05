@@ -123,7 +123,7 @@ public class GummySimulatorStats {
 			this.maxHandDuration = duration;
 		}
 		
-		double reward = state.handReward;
+		double reward = state.getTotalHandReward();
 		this.totReward += reward;
 		this.movingAverageReward.store((int)reward);
 		this.avgHandReward = this.totReward / this.numHandsCompleted; 

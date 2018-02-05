@@ -35,20 +35,7 @@ public class GummyConfig {
     // input encoding weights
     GummyState.InputWeights inputWeights = new GummyState.InputWeights();
 
-    GummyConfig() {
-    		rewards.winReward = 300;
-    		rewards.lossPenalty = 50;
-    		rewards.flunkPenalty = 200;    // dunno about this, but maybe
-    		rewards.handScoreDeltaPerPointReward = 2.0;  // for every "point" CHANGE  (up or down) in GinTester.score(myHand) on each turn
-    		rewards.handScore3Bonus=5.0;   // each run of 3+
-    		rewards.handScore4Bonus=10.0;   // each run of 4+
-    		rewards.pointlessDrawPenalty=4.0; // drawing when it doesn't help - cheating, really, to include this heuristic
-    		rewards.pointlessKeepPenalty=4.0;  // recommending for keep when it doesn't matter. iterated in discard() processing, keep low-magnitude
-    		
-    		rewards.goodDiscardRecommendationReward=0.0; // good recommendation for discard, iterated in discard() processing, keep low-magnitude    		    		
-    		rewards.handScoreKeepalivePerPointReward = 0;  // for every "point" in GinTester.score(myHand) on EACH TURN
-    		rewards.discardStatusQuoPerPointReward = 0.0;
-    }
+    GummyConfig() {}
 	
 	public boolean getUseUI() {
 		return useUI;

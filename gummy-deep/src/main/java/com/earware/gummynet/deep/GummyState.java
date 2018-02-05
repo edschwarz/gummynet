@@ -62,7 +62,7 @@ public class GummyState implements Encodable {
 	// reporting support
 	public int originalId;
 	public int instanceId;
-    public double handReward = 0;
+    public double[] handReward = {0,0};
 	public int stepCount=0;
 	public long startTime=0;
 	public long endTime=0;
@@ -161,13 +161,34 @@ public class GummyState implements Encodable {
     		gs.stepCount = this.stepCount;
     		gs.startTime = this.startTime;
     		gs.endTime = this.endTime;
-    		gs.handReward = this.handReward;
+    		gs.handReward[0] = this.handReward[0];
+    		gs.handReward[1] = this.handReward[1];
     		gs.totEncodingCalls = this.totEncodingCalls;
     		gs.netRewards.putAll(this.netRewards);
     		gs.drawRewards.putAll(this.drawRewards);
     		gs.discardRewards.putAll(this.discardRewards);
     		System.arraycopy(this.netValues, 0, gs.netValues, 0, this.netValues.length);
     		return gs;
+    }
+    
+    public double getCurrentHandReward() {
+    		return handReward[this.getGinHand().getCurrentPlayerIndex()];
+    }
+    
+    public double getNoncurrentHandReward() {
+		return handReward[this.getGinHand().getCurrentPlayerIndex()==0?1:0];
+}
+
+    public double getTotalHandReward() {
+		return handReward[0] + handReward[1];
+}
+
+    public void setCurrentHandReward(double d) {
+		handReward[this.getGinHand().getCurrentPlayerIndex()]=d;
+    }
+    
+    public void setNoncurrentHandReward(double d) {
+		handReward[this.getGinHand().getCurrentPlayerIndex()==0?1:0]=d;
     }
     
     public String toString() {
@@ -178,7 +199,7 @@ public class GummyState implements Encodable {
 		return "" 
 				+ originalId + ':' + getGinHand().getCurrentPlayer().getName() 
 				+ '/' + stepCount 
-				+ '/' + String.format("%01.2f",(handReward+stepReward))
+				+ '/' + String.format("%01.2f",(getTotalHandReward()+stepReward))
 				+ "   rewards(draw/discard/net):" + drawRewards + " " + discardRewards + " " + netRewards
 				;
     }

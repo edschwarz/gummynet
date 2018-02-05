@@ -65,7 +65,7 @@ gummyState().toArray(); // force this since acutal learning is evidently done on
 //+ "  @" + gummyState().toString(reward));        		
 			if (discardingState.inMyHandIndex<handSize-1) {
 				discardingState.inMyHandIndex++;
-gummyState().handReward += reward;				
+				gummyState().setCurrentHandReward(gummyState().getCurrentHandReward()+reward);				
 				return new StepReply<GummyState>(discardingState, reward, isDone(), new JSONObject("{}"));
 			}
 			// falls through if discarding is complete
@@ -138,7 +138,7 @@ gummyState().handReward += reward;
         		reward += oldScore*rewards.discardStatusQuoPerPointReward;
         }
         
-		gummyState().handReward += reward;
+		gummyState().setNoncurrentHandReward(gummyState().getNoncurrentHandReward()+reward);				
 		GummyState returnState = gummyState().copy();
 		
 		reportDiscard(myName, reward);
@@ -159,14 +159,14 @@ gummyState().handReward += reward;
 				if (!endingPlayer.equals(endingGinHand.getPlayer(myName))) {
 					// we lost. Pay the price
 					reward -= rewards.lossPenalty;
-					returnState.handReward -= rewards.lossPenalty;
-LOGGER.info(" alas, I lost...  my handReward is now " + returnState.handReward);				
+					returnState.setNoncurrentHandReward(returnState.getNoncurrentHandReward()-rewards.lossPenalty);				
+LOGGER.info(" alas, "+ myName +" lost...  my handReward is now " + returnState.getNoncurrentHandReward());				
 				}
 			} else if (endingGinHand.isDeckEmpty()) {
 				// the game ran too long, it's everybody's fault
 				reward -= rewards.flunkPenalty;
-				returnState.handReward -= rewards.flunkPenalty;
-LOGGER.info(" I blew it again.  my handReward is now " + returnState.handReward);				
+				returnState.setNoncurrentHandReward(returnState.getNoncurrentHandReward()-rewards.flunkPenalty);				
+LOGGER.info(" "+ myName +" blew it again.  my handReward is now " + returnState.getNoncurrentHandReward());				
 			}
 //LOGGER.info(
 //myName  
@@ -210,23 +210,23 @@ LOGGER.info(" I blew it again.  my handReward is now " + returnState.handReward)
         	ginHand.pushDraw(drawSourceFromAction(a));
         	Collections.sort(ginHand.getCurrentPlayerHand().getCards());
     			
+        // per-step reward based on current hand score
+    		reward += calculateDrawReward(a, oldScore,ginHand.getCurrentPlayerHand(),rewards);
+    		
         	if (ginHand.getCurrentPlayerHand().wins()) {
     			reward += rewards.winReward;
-LOGGER.info(" I am the winner!! my handReward is now " + (gummyState().handReward + reward));				
+LOGGER.info(" "+ gummyState().getGinHand().getCurrentPlayer().getName() + " is the winner!! my handReward is now " + (gummyState().getCurrentHandReward() + reward));				
     		} else if (ginHand.isDeckEmpty()) {
     			reward -= rewards.flunkPenalty;
-LOGGER.info(" I drew last card. my handReward is now " + (gummyState().handReward + reward));				
+LOGGER.info(" "+ gummyState().getGinHand().getCurrentPlayer().getName() + " drew last card. my handReward is now " + (gummyState().getCurrentHandReward() + reward));				
     		} else if (shouldDrain(a,ginHand)) {
 LOGGER.info( "pfft>>> draining " + ginHand.getDeck().getUndealt().size());
     			ginHand.drain();
     			reward -= rewards.flunkPenalty;
-LOGGER.info(" boss said DRAIN!  my handReward is now " + (gummyState().handReward + reward));				
+LOGGER.info(" " + gummyState().getGinHand().getCurrentPlayer().getName() + " must DRAIN!  my handReward is now " + (gummyState().getCurrentHandReward() + reward));				
     		}
-		
-        // per-step reward based on current hand score
-		reward += calculateDrawReward(a, oldScore,ginHand.getCurrentPlayerHand(),rewards);	        
-        		
-		gummyState().handReward += reward;                
+		        		
+		gummyState().setCurrentHandReward(gummyState().getCurrentHandReward() + reward);
 		GummyState returnState = gummyState().copy();
 		
 		reportDraw(returnState.getGinHand().getCurrentPlayer().getName(), reward);
