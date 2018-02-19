@@ -124,7 +124,7 @@ public class GummyNetworkEvolver {
     		if (config.gummyConfigFilePath!=null && config.gummyConfigFilePath.length()>0) {
     			Files.copy(new File(config.gummyConfigFilePath), new File(localConfig.gummyConfigFilePath));
     		} else {
-    			// otherwise it won't be saved
+    			// saving snapshot of default config
     			new GummyConfig().save(localConfig.gummyConfigFilePath);
     		}
     		if (config.motherDqnFilePath!=null && config.motherDqnFilePath.length()>0) {
@@ -137,10 +137,11 @@ public class GummyNetworkEvolver {
     
     protected ScoredStats evolveLocal(GummyNetworkEvolver.Config localConfig) throws IOException {
     	
-		LOGGER.info("evolving with local config: " + localConfig.toString());
+		LOGGER.info("evolving with local GNE config: " + localConfig.toString());
     	
 		String generationDqnFilePath = localConfig.motherDqnFilePath;
 		GummyConfig generationConfig = GummyConfig.fromFile(localConfig.gummyConfigFilePath);
+		LOGGER.info("evolving with local Gummy config: " + generationConfig.toString());
 		ScoredStats winningStats = null;
     		for (int i=0; i<localConfig.generations; i++) {
     			
@@ -158,7 +159,9 @@ public class GummyNetworkEvolver {
     	        			ScoredStats survivorStats = scoreCard.get(j);
     	        			String tmpDqnPath = survivorStats.stats.player1TargetDqnPath;
     	        			String saveDqnPath =  localConfig.targetDirectoryForEvolution +"/" + MODELS_DIR + "/evolve.generation." + (i+1) + ".rank." + j + ".dqn";
-    		    			LOGGER.info("copying " + tmpDqnPath + " to " + saveDqnPath + " -- " + survivorStats.playStats.toString());
+    		    			LOGGER.info("copying " + tmpDqnPath + " to " + saveDqnPath 
+    		    					+ " -- score=" + survivorStats.score + "   fitness=" + survivorStats.fitness 
+    		    					+ " " + survivorStats.playStats.toString());
     		    	        Files.copy(new File(tmpDqnPath), new File(saveDqnPath));
     	        		}
 	    	        winningStats = scoreCard.get(0);
@@ -211,7 +214,7 @@ public class GummyNetworkEvolver {
 			starttime = System.currentTimeMillis();
 			scoreCard = scoreGeneration(statsList, localConfig.validationHandsPerProgeny);
 			duration = System.currentTimeMillis() - starttime;
-			LOGGER.info("Filter stage completed: validated " + scoreCard.size() + " models from " + statsList.size() + " in " + duration + "ms");
+			LOGGER.info("Validation/scoring stage completed: validated " + scoreCard.size() + " models from " + statsList.size() + " in " + duration + "ms");
 		}
 
 		// report
@@ -335,26 +338,38 @@ public class GummyNetworkEvolver {
     		GummyRunner.GummyRunnerStats stats = null;
     		GummyDeepPlayGin.Stats playStats = null;
     		double score = 0;
+    		double fitness = 0;
 		@Override
 		public int compareTo(ScoredStats o) {return Double.compare(((ScoredStats)o).score, this.score);}
 		@Override
 		public String toString() {
-			String rez = "score=" + score;
+			String rez = "score=" + String.format("%3.3f", score) + "   fitness=" + String.format("%3.3f", fitness);
 			if (playStats!=null) rez += "\n" + playStats.toString();
 			if (stats!=null) rez += "\n" + stats.toString();
 			return rez; 
 		}
 	}
     
+    /**
+     * process the filtered list by playing each model in <code>statsList</code>
+     * against the bot <code>validationHands</code> hands, 
+     * and score the results
+     * @param statsList
+     * @param validationHands
+     * @return ranked <code>List&lt;ScoredStats&gt;</code>
+     */
     protected List<ScoredStats> scoreGeneration(List<GummyRunner.GummyRunnerStats> statsList, int validationHands) {
 		int candidateCount = statsList.size();
 		List<ScoredStats> scoreCard = new ArrayList<ScoredStats>();
 		List<Integer> winsList = new ArrayList<Integer>();
 		List<Integer> turnsList = new ArrayList<Integer>();
 		List<Double> ratioList = new ArrayList<Double>();
+		List<Double> fitnessList = new ArrayList<Double>();
         for (int i=0; i<candidateCount; i++) {
         		GummyRunner.GummyRunnerStats runnerStats = statsList.get(i);
         		String model = runnerStats.player1TargetDqnPath;
+        		
+        		// run the validation
     			LOGGER.info("PLAY - validating model " + i + ": " + model);
         		GummyDeepPlayGin.Stats playStats = GummyDeepPlayGin.play(model, "bot", validationHands);
     			LOGGER.info("PLAY - model " + i + ": " + playStats.winCounts[0] + " model wins -- " + playStats.toString());
@@ -362,27 +377,41 @@ public class GummyNetworkEvolver {
         			// fell in the hole. Forget it.
         			continue;
         		}
+        		
         		ScoredStats stats = new ScoredStats();
         		stats.stats = runnerStats;
         		stats.playStats = playStats;
         		scoreCard.add(stats);
+        		stats.fitness = fitnessEntry(playStats.p1WinHistogram);
         		winsList.add(playStats.winCounts[0]);
+        		fitnessList.add(stats.fitness);
+        		
         		turnsList.add(turnEntry(playStats.turns())); // reverse, lower is better
         		ratioList.add(ratioEntry(playStats)); // closest to 0.75%, I guess        		
         }
+        
         Collections.sort(winsList);
         Collections.sort(turnsList);
         Collections.sort(ratioList);
+        Collections.sort(fitnessList);
+        
         for (int i=0; i<scoreCard.size(); i++) {
     			ScoredStats scoredStats = scoreCard.get(i);
         		GummyDeepPlayGin.Stats playStats = scoredStats.playStats;
         		int player1Wins = playStats.winCounts[0];
+        		double fitness = scoredStats.fitness;
         		//int turnEntry = turnEntry(playStats.turns());
         		//double ratioEntry = ratioEntry(playStats);
         		for (int j=0; j<winsList.size(); j++) {
         			if (winsList.get(j) == player1Wins) {
         				scoredStats.score += j;
+LOGGER.info(i + ": adding " + j + " based on " + player1Wins + " wins (out of "+winsList.size()+")");        				
         				player1Wins = -1; // no dups
+        			}
+        			if (fitnessList.get(j) == fitness) {
+        				scoredStats.score += j;
+LOGGER.info(i + ": adding " + j + " based on fitness of " + fitness + " (out of "+fitnessList.size()+")");        				
+        				fitness = 0; // no dups
         			}
         			//if (turnsList.get(j) == turnEntry) {
         			//	scoredStats.score += j;
@@ -402,6 +431,10 @@ public class GummyNetworkEvolver {
     
     private int turnEntry(int turns) {
     		return 200-turns;
+    }
+    
+    private double fitnessEntry(double[] histogram) {
+    		return GummySmartGinStrategy.evaluateHistogramFit(histogram);
     }
     
     private double ratioEntry(GummyDeepPlayGin.Stats playStats) {

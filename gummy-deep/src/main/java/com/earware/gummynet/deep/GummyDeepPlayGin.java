@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.earware.gummynet.gin.Card;
+import com.earware.gummynet.gin.Deck;
 import com.earware.gummynet.gin.GinHand;
 import com.earware.gummynet.gin.GinStrategy;
 import com.earware.gummynet.gin.PlayGin;
@@ -33,17 +35,27 @@ public class GummyDeepPlayGin {
 		public int voteDiscardCount = 0;
 		public Map<String,Integer> winMap = new HashMap<String,Integer>();
 		public int[] winCounts = {0,0};
+		public double[] p1WinHistogram = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+		public double[] p2WinHistogram = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		public int turns() {return drawPileCount+drawDeckCount;} 
 		public int totalDecisions() {return turns() + voteKeepCount+voteDiscardCount;} 
 		public String toString() {
-			return "won " + wins + " hands out of " + hands + String.format(" (%3.2f%%)", ((double)wins/hands)*100) 
-					+ " in " + duration + "ms "   + String.format("(%3.2f ms/hand)", ((double)duration/hands))
-			        + "  winners: " + winMap + " (p1=" + winCounts[0] + ", p2=" + winCounts[1] + ")" + String.format(" (p1=%3.2f%%, p2=%3.2f%%)", (((double)winCounts[0]/hands)*100), (((double)winCounts[1]/hands)*100))
-			        + " overall counts: PILE=" + drawPileCount 
+			return    " winners: " + winMap + " (p1=" + winCounts[0] + ", p2=" + winCounts[1] + ")" + String.format(" (p1=%3.2f%%, p2=%3.2f%%)", (((double)winCounts[0]/hands)*100), (((double)winCounts[1]/hands)*100))
+					+ " total " + wins + "/" + hands + String.format(" (%3.2f%%)", ((double)wins/hands)*100)
+					+ " fitness: [p1=" + String.format("%5.3f", p1Fitness()) + ", p2=" + String.format("%5.3f", p2Fitness()) + "]"  
+					+ " time: " + duration + "ms "   + String.format("(%3.2f ms/hand)", ((double)duration/hands))
+					+ " decision counts: PILE=" + drawPileCount 
 			        					+ " DECK=" + drawDeckCount 
 			        					+ " KEEP=" + voteKeepCount 
-			        					+ "  DISCARD=" + voteDiscardCount
+			        					+ " DISCARD=" + voteDiscardCount
 			  ;
+		}
+		
+		public double p1Fitness() {
+			return GummySmartGinStrategy.evaluateHistogramFit(this.p1WinHistogram);
+		}
+		public double p2Fitness() {
+			return GummySmartGinStrategy.evaluateHistogramFit(this.p2WinHistogram);
 		}
 	}
 	
@@ -101,8 +113,14 @@ public class GummyDeepPlayGin {
 		stats.winMap.put(winnerName,  currentWins+1);
 		if (winnerName.equals(ginHand.getPlayerOne().name)) {
 			stats.winCounts[0]++;
+			for (Card c : ginHand.getCurrentPlayerHand().getCards()) {
+				stats.p1WinHistogram[Deck.card2Int(c)]++;
+			}
 		} else {
 			stats.winCounts[1]++;
+			for (Card c : ginHand.getCurrentPlayerHand().getCards()) {
+				stats.p2WinHistogram[Deck.card2Int(c)]++;
+			}
 		}
 	}
 	
