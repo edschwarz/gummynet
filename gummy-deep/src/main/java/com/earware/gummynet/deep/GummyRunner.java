@@ -14,6 +14,7 @@ import org.deeplearning4j.rl4j.learning.sync.qlearning.QLearning;
 import org.deeplearning4j.rl4j.network.dqn.DQN;
 import org.deeplearning4j.rl4j.network.dqn.IDQN;
 import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdDense;
+import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdConv;
 import org.deeplearning4j.rl4j.network.dqn.ExposedNetworkDQN;
 import org.deeplearning4j.rl4j.space.DiscreteSpace;
 import org.deeplearning4j.rl4j.util.DataManager;
@@ -35,7 +36,8 @@ public class GummyRunner {
     // action values Q(s,...; theta), which specify the "probability" 
     // reccommendation-weight of the action
     // (where theta are the parameters of the network.)
-    public DQNFactoryStdDense.Configuration GUMMY_NET_CONFIG;
+    private DQNFactoryStdDense.Configuration GUMMY_NET_CONFIG_DENSE;
+    private DQNFactoryStdConv.Configuration GUMMY_NET_CONFIG_CONV;
 
     // /////////////////////////////////////////////
 	public String defaultModelSavePath = GummyNetworkEvolver.MODELS_DIR;
@@ -312,8 +314,11 @@ public class GummyRunner {
     }
 
     private DQN<?> createDQN(int[] obsSpaceShape, int actionSpaceSize) {
-		DQN<?> dqn = new DQNFactoryStdDense(GUMMY_NET_CONFIG)
+		DQN<?> dqn;
+		dqn = new DQNFactoryStdDense(GUMMY_NET_CONFIG_DENSE)
 				.buildDQN(obsSpaceShape,actionSpaceSize);
+		//dqn = new DQNFactoryStdConv(GUMMY_NET_CONFIG_CONV)
+		//		.buildDQN(obsSpaceShape,actionSpaceSize);
 		return dqn;
     }
 
@@ -440,7 +445,7 @@ public class GummyRunner {
                         true   //double DQN
                 );
 
-       GUMMY_NET_CONFIG =
+       GUMMY_NET_CONFIG_DENSE =
                  DQNFactoryStdDense.Configuration.builder()
                  		.l2(config.neuralNetL2)
                  		.learningRate(config.neuralNetLearningRate)
@@ -448,6 +453,14 @@ public class GummyRunner {
                  		.numHiddenNodes(config.neuralNetNodesPerLayer)
                  		.build();
 
+       GUMMY_NET_CONFIG_CONV =
+               DQNFactoryStdConv.Configuration.builder()
+               		.l2(config.neuralNetL2)
+               		.learningRate(config.neuralNetLearningRate)
+               		//.updater(??)
+               		//.numLayer(config.neuralNetNumLayers)
+               		//.numHiddenNodes(config.neuralNetNodesPerLayer)
+               		.build();
     }
     
     private String generateTargetDQNPath(String sourcePath) {

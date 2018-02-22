@@ -127,6 +127,8 @@ public class GummyDeepPlayGin {
 	protected static GinStrategy getGinStrategy(String s, GummyMDP.Rewards rewards) {
 		if (s==null || s.length()==0 | s.equals("bot")) {
 			return new GummySmartGinStrategy(rewards!=null?rewards:new GummyMDP.Rewards());
+		} else if (s.equals("random")) {
+			return new PlayGin.RandomGinStrategy();
 		} else {
 			return new GummyDeepGinStrategy(s);
 		}

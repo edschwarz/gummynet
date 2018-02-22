@@ -404,8 +404,8 @@ public class GummyNetworkEvolver {
         		//double ratioEntry = ratioEntry(playStats);
         		for (int j=0; j<winsList.size(); j++) {
         			if (winsList.get(j) == player1Wins) {
-        				scoredStats.score += j;
-LOGGER.info(i + ": adding " + j + " based on " + player1Wins + " wins (out of "+winsList.size()+")");        				
+        				scoredStats.score += j*2;
+LOGGER.info(i + ": adding " + j*2 + "(" + j + "th place) based on " + player1Wins + " wins (out of "+winsList.size()+")");        				
         				player1Wins = -1; // no dups
         			}
         			if (fitnessList.get(j) == fitness) {
