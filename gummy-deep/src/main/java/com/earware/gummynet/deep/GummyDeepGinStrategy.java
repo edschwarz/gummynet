@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.rl4j.learning.Learning;
-import org.deeplearning4j.rl4j.learning.sync.Transition;
 import org.deeplearning4j.rl4j.network.dqn.DQN;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -80,10 +79,22 @@ public class GummyDeepGinStrategy implements GinStrategy {
     }
 	
 	protected int getDecision(double[] values) {
-        INDArray input = Nd4j.create(values);
-        INDArray[] history = new INDArray[] {input};
-        INDArray hstack = Transition.concat(Transition.dup(history));
-		INDArray qs = dqn.output(hstack);
+		
+		INDArray hstack;
+		if (GummyState.isConvolution()) {
+			int[] shape= {13,4};
+			INDArray input = Nd4j.create(values, shape);
+			INDArray[] history = new INDArray[] {input};
+	        hstack = Nd4j.concat(0, history); 
+	        hstack = hstack.reshape(Learning.makeShape(1, hstack.shape()));
+	        hstack = hstack.reshape(Learning.makeShape(1, hstack.shape()));
+		} else {
+			INDArray input = Nd4j.create(values);
+			INDArray[] history = new INDArray[] {input};		
+			hstack = Nd4j.concat(0, history);
+		}
+
+        INDArray qs = dqn.output(hstack);
         int maxAction = Learning.getMaxAction(qs);
         Double maxQ = qs.getDouble(maxAction);
         logDecision(maxAction);

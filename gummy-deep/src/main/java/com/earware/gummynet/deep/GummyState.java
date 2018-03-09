@@ -26,6 +26,10 @@ public class GummyState implements Encodable {
 	private static final int DRAW_IS_PENDING_INDEX = 52;
 	private static final double DRAW_IS_PENDING_ACTIVATION = 2.0;
 	
+	private static boolean isConvolution = true;
+	public static boolean isConvolution() {return GummyState.isConvolution;}
+	public static void setConvolution(boolean useConvolution) {GummyState.isConvolution = useConvolution;}
+	
 	/**
 	 * Used to set the INPUT ENCODING WEIGHTS 
 	 */
@@ -128,6 +132,12 @@ public class GummyState implements Encodable {
     			netValues[totEncodingCalls]=total(values);
     		}
     		totEncodingCalls++;
+    		
+    		if (isConvolution) {
+    			double[] rez = new double[values.length-1];
+    			System.arraycopy(values, 0, rez, 0, rez.length);
+    			return rez;
+    		}
     		
         return values;
     }

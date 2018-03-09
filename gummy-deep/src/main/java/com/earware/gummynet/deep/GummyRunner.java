@@ -14,7 +14,6 @@ import org.deeplearning4j.rl4j.learning.sync.qlearning.QLearning;
 import org.deeplearning4j.rl4j.network.dqn.DQN;
 import org.deeplearning4j.rl4j.network.dqn.IDQN;
 import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdDense;
-import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdConv;
 import org.deeplearning4j.rl4j.network.dqn.ExposedNetworkDQN;
 import org.deeplearning4j.rl4j.space.DiscreteSpace;
 import org.deeplearning4j.rl4j.util.DataManager;
@@ -37,7 +36,7 @@ public class GummyRunner {
     // reccommendation-weight of the action
     // (where theta are the parameters of the network.)
     private DQNFactoryStdDense.Configuration GUMMY_NET_CONFIG_DENSE;
-    private DQNFactoryStdConv.Configuration GUMMY_NET_CONFIG_CONV;
+    private GummyDQNFactoryConv.Configuration GUMMY_NET_CONFIG_CONV;
 
     // /////////////////////////////////////////////
 	public String defaultModelSavePath = GummyNetworkEvolver.MODELS_DIR;
@@ -315,10 +314,17 @@ public class GummyRunner {
 
     private DQN<?> createDQN(int[] obsSpaceShape, int actionSpaceSize) {
 		DQN<?> dqn;
-		dqn = new DQNFactoryStdDense(GUMMY_NET_CONFIG_DENSE)
-				.buildDQN(obsSpaceShape,actionSpaceSize);
-		//dqn = new DQNFactoryStdConv(GUMMY_NET_CONFIG_CONV)
-		//		.buildDQN(obsSpaceShape,actionSpaceSize);
+		
+		if (GummyState.isConvolution()) {
+			dqn = new GummyDQNFactoryConv(GUMMY_NET_CONFIG_CONV)
+					.buildDQN(13,   
+							4,
+							1,
+							2);
+		} else {
+			dqn = new DQNFactoryStdDense(GUMMY_NET_CONFIG_DENSE)
+					.buildDQN(obsSpaceShape,actionSpaceSize);
+		}
 		return dqn;
     }
 
@@ -356,12 +362,15 @@ public class GummyRunner {
     }
 
 	private ILearning<GummyState, Integer, DiscreteSpace> createLearning(GummyMDP mdp, IDQN<?> dqn, DataManager manager) {
-        //return new QLearningDiscreteDense<GummyState>(mdp, 
-		//		GUMMY_NET, GUMMY_QL_CONFIG, manager);
-        return new GummyQLearning<GummyState>(mdp,
-        					dqn, 
-        					GUMMY_QLEARNING_CONFIG,
-                        manager);
+		if (GummyState.isConvolution()) {
+	        return new GummyQLearningConv<GummyState>(mdp,
+					dqn, 
+					GUMMY_QLEARNING_CONFIG,
+                manager);
+		} else {
+			return new GummyQLearningDense<GummyState>(mdp, 
+					dqn, GUMMY_QLEARNING_CONFIG, manager);
+		}
 	}
     
     private void train(ILearning<GummyState, Integer, DiscreteSpace> qlearning) {
@@ -418,10 +427,17 @@ public class GummyRunner {
 			        LOGGER.info("cleaning up: " + gummyMDP);
 			        // someone is done - drain the other learnings remaining steps so they end also
 			        for (Object o: learnings) {
-			        		@SuppressWarnings("unchecked")
-						GummyQLearning<GummyState> learning 
-								= (GummyQLearning<GummyState>)o;
-			        		learning.cancel();
+			        		if (GummyState.isConvolution()) {
+				        		@SuppressWarnings("unchecked")
+							GummyQLearningConv<GummyState> learning 
+									= (GummyQLearningConv<GummyState>)o;
+				        		learning.cancel();
+			        		} else {
+			        				@SuppressWarnings("unchecked")
+								GummyQLearningDense<GummyState> learning 
+								= (GummyQLearningDense<GummyState>)o;
+								learning.cancel();
+			        		}
 			        	}
 					gummyMDP.getGummySimulator().latchFinal(null);
 				}};
@@ -454,7 +470,7 @@ public class GummyRunner {
                  		.build();
 
        GUMMY_NET_CONFIG_CONV =
-               DQNFactoryStdConv.Configuration.builder()
+               GummyDQNFactoryConv.Configuration.builder()
                		.l2(config.neuralNetL2)
                		.learningRate(config.neuralNetLearningRate)
                		//.updater(??)

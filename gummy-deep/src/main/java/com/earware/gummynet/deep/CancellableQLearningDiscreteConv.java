@@ -2,8 +2,9 @@ package com.earware.gummynet.deep;
 
 import java.util.ArrayList;
 
+import org.deeplearning4j.rl4j.learning.IHistoryProcessor;
 import org.deeplearning4j.rl4j.learning.sync.qlearning.QLearning;
-import org.deeplearning4j.rl4j.learning.sync.qlearning.discrete.QLearningDiscreteDense;
+import org.deeplearning4j.rl4j.learning.sync.qlearning.discrete.QLearningDiscreteConv;
 import org.deeplearning4j.rl4j.mdp.MDP;
 import org.deeplearning4j.rl4j.network.dqn.IDQN;
 import org.deeplearning4j.rl4j.space.DiscreteSpace;
@@ -11,15 +12,15 @@ import org.deeplearning4j.rl4j.space.Encodable;
 import org.deeplearning4j.rl4j.util.DataManager;
 import org.deeplearning4j.rl4j.util.DataManager.StatEntry;
 
-public class CancellableQLearningDiscreteDense<O extends Encodable>
-     extends QLearningDiscreteDense<O> {
+public class CancellableQLearningDiscreteConv<O extends Encodable>
+		extends QLearningDiscreteConv<O> {
 	
 	private boolean cancelled = false;
 	public void cancel() {cancelled = true;}
 	
-	CancellableQLearningDiscreteDense(MDP<O, Integer, DiscreteSpace> mdp, IDQN<?> dqn, 
+	CancellableQLearningDiscreteConv(MDP<O, Integer, DiscreteSpace> mdp, IDQN<?> dqn, 
 					QLearning.QLConfiguration cfg, DataManager manager) {
-		super(mdp, dqn, cfg, manager);
+		super(mdp, dqn, IHistoryProcessor.Configuration.builder().rescaledHeight(13).rescaledWidth(4).croppingHeight(13).croppingWidth(4).historyLength(1).skipFrame(1).build(), cfg, manager);
 	}
 	
 	@Override

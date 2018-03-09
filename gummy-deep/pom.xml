@@ -61,21 +61,26 @@
     </build>
 
     <dependencies>
+
         <dependency>
             <groupId>org.deeplearning4j</groupId>
             <artifactId>rl4j-examples</artifactId>
             <version>${rl4j.version}</version>
         </dependency>
-        <!--  <dependency>
+<!--  
+        <dependency>
             <groupId>org.deeplearning4j</groupId>
             <artifactId>rl4j-core</artifactId>
             <version>${rl4j.version}</version>
-        </dependency> -->
+        </dependency>
+-->
+
         <dependency>
 		<groupId>org.deeplearning4j</groupId>
 		<artifactId>deeplearning4j-ui_2.11</artifactId>
 		<version>0.9.1</version>
 	</dependency>
+
 	<dependency>
             <groupId>com.earware.gummynet</groupId>
             <artifactId>gummy-gin</artifactId>

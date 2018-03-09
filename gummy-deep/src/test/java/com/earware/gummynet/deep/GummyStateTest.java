@@ -31,7 +31,11 @@ public class GummyStateTest {
 		GummyState.InputWeights weights = state.getInputWeights();
 		weights.scalingFactor = 0;  // disable bias and scaling
 		double[] stateArray = state.toArray();
-		assert(stateArray.length == GummyState.STATE_SIZE);
+		if (GummyState.isConvolution()) {
+			assert(stateArray.length == GummyState.STATE_SIZE-1);
+		} else {
+			assert(stateArray.length == GummyState.STATE_SIZE);
+		}
 
 		PlayerHand hand = state.getGinHand().getCurrentPlayerHand(); 
 		for (int i=0; i<52; i++) {

@@ -6,9 +6,9 @@ import org.deeplearning4j.rl4j.space.DiscreteSpace;
 import org.deeplearning4j.rl4j.space.Encodable;
 import org.deeplearning4j.rl4j.util.DataManager;
 
-public class GummyQLearning<O extends Encodable> extends CancellableQLearningDiscreteDense<O> {
+public class GummyQLearningConv<O extends Encodable> extends CancellableQLearningDiscreteConv<O> {
 
-	GummyQLearning(MDP<O, Integer, DiscreteSpace> mdp, IDQN<?> dqn, QLConfiguration cfg, DataManager manager) {
+	GummyQLearningConv(MDP<O, Integer, DiscreteSpace> mdp, IDQN<?> dqn, QLConfiguration cfg, DataManager manager) {
 		super(mdp, dqn, cfg, manager);
 		// TODO Auto-generated constructor stub
 	}

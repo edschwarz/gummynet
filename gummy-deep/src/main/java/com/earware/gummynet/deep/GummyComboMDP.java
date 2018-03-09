@@ -19,14 +19,14 @@ public class GummyComboMDP extends GummyMDP {
     final private static int ACTION_DRAW_DECK = 1; // draw from DECK
     
 	private DiscreteSpace actionSpace = new DiscreteSpace(ACTION_SIZE);
-    private ObservationSpace<GummyState> observationSpace 
-    				= new ArrayObservationSpace<GummyState>(new int[] {GummyState.STATE_SIZE});
+    private ObservationSpace<GummyState> observationSpace; 
     DiscardGummyState discardingState = null;
     Integer[] votes = new Integer[DISCARD_ACTION_SIZE];
 
     //----------------------------------------------
 
     public GummyComboMDP() {
+		initObservationSpace();
     }
       
     public GummyComboMDP newInstance() {
@@ -35,6 +35,15 @@ public class GummyComboMDP extends GummyMDP {
     
     public GummyComboMDP(GummySimulator gummySimulator, Rewards rewards) {
     		super(gummySimulator, rewards);
+    		initObservationSpace();
+    }
+    
+    private void initObservationSpace() {
+		if (GummyState.isConvolution()) {
+			observationSpace = new ArrayObservationSpace<GummyState>(new int[] {13,4});
+		} else {
+			observationSpace = new ArrayObservationSpace<GummyState>(new int[] {GummyState.STATE_SIZE});
+		}
     }
     
     @Override

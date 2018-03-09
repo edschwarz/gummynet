@@ -363,7 +363,8 @@ public class GummyNetworkEvolver {
 		List<ScoredStats> scoreCard = new ArrayList<ScoredStats>();
 		List<Integer> winsList = new ArrayList<Integer>();
 		List<Integer> turnsList = new ArrayList<Integer>();
-		List<Double> ratioList = new ArrayList<Double>();
+		List<Double> pileRatioList = new ArrayList<Double>();
+		List<Double> discardRatioList = new ArrayList<Double>();
 		List<Double> fitnessList = new ArrayList<Double>();
         for (int i=0; i<candidateCount; i++) {
         		GummyRunner.GummyRunnerStats runnerStats = statsList.get(i);
@@ -387,12 +388,14 @@ public class GummyNetworkEvolver {
         		fitnessList.add(stats.fitness);
         		
         		turnsList.add(turnEntry(playStats.turns())); // reverse, lower is better
-        		ratioList.add(ratioEntry(playStats)); // closest to 0.75%, I guess        		
+        		pileRatioList.add(pileRatioEntry(playStats));         		
+        		discardRatioList.add(discardRatioEntry(playStats));         		
         }
         
         Collections.sort(winsList);
         Collections.sort(turnsList);
-        Collections.sort(ratioList);
+        Collections.sort(pileRatioList);
+        Collections.sort(discardRatioList);
         Collections.sort(fitnessList);
         
         for (int i=0; i<scoreCard.size(); i++) {
@@ -401,25 +404,32 @@ public class GummyNetworkEvolver {
         		int player1Wins = playStats.winCounts[0];
         		double fitness = scoredStats.fitness;
         		//int turnEntry = turnEntry(playStats.turns());
-        		//double ratioEntry = ratioEntry(playStats);
+        		double pileRatioEntry = pileRatioEntry(playStats);
+        		double discardRatioEntry = discardRatioEntry(playStats);
         		for (int j=0; j<winsList.size(); j++) {
         			if (winsList.get(j) == player1Wins) {
-        				scoredStats.score += j*2;
-LOGGER.info(i + ": adding " + j*2 + "(" + j + "th place) based on " + player1Wins + " wins (out of "+winsList.size()+")");        				
+        				scoredStats.score += j*4;
+LOGGER.info(i + ": adding " + j*4 + "(" + j + "th place) based on " + player1Wins + " wins (out of "+winsList.size()+")");        				
         				player1Wins = -1; // no dups
         			}
         			if (fitnessList.get(j) == fitness) {
-        				scoredStats.score += j;
-LOGGER.info(i + ": adding " + j + " based on fitness of " + fitness + " (out of "+fitnessList.size()+")");        				
+        				scoredStats.score += j*2;
+LOGGER.info(i + ": adding " + j*2 + "(" + j + "th place) based on fitness of " + fitness + " (out of "+fitnessList.size()+")");        				
         				fitness = 0; // no dups
+        			}
+        			if (pileRatioList.get(j) == pileRatioEntry) {
+        				scoredStats.score += j;
+LOGGER.info(i + ": adding " + j + " based on pileRatioEntry of " + pileRatioEntry + " (out of "+pileRatioList.size()+")");        				
+        				pileRatioEntry = -10000; 
+        			}
+        			if (discardRatioList.get(j) == discardRatioEntry) {
+        				scoredStats.score += j;
+LOGGER.info(i + ": adding " + j + " based on discardRatioEntry of " + discardRatioEntry + " (out of "+discardRatioList.size()+")");        				
+        				discardRatioEntry = -10000; 
         			}
         			//if (turnsList.get(j) == turnEntry) {
         			//	scoredStats.score += j;
         			//	turnEntry = -1; // no dups
-        			//}
-        			//if (ratioList.get(j) == ratioEntry) {
-        			//	scoredStats.score += j;
-        			//	ratioEntry = -10000; 
         			//}
         		}
         }
@@ -437,9 +447,16 @@ LOGGER.info(i + ": adding " + j + " based on fitness of " + fitness + " (out of 
     		return GummySmartGinStrategy.evaluateHistogramFit(histogram);
     }
     
-    private double ratioEntry(GummyDeepPlayGin.Stats playStats) {
-		double ratio = (playStats.drawPileCount + playStats.voteDiscardCount)/(double)(playStats.totalDecisions());
-		return 1-Math.abs(0.75 - ratio);
+    private static final double IDEAL_DRAW_RATIO = 0.1; // most of the time you should draw from the deck - just a guess ejs 3/7/2018 
+    private double pileRatioEntry(GummyDeepPlayGin.Stats playStats) {
+		double ratio = ((double)playStats.drawPileCount)/((double)playStats.turns());
+		return 1.0-Math.abs(ratio-IDEAL_DRAW_RATIO);
+    }
+    
+    private static final double IDEAL_DISCARD_RATIO = 0.15; // ? most cards in your hand should NOT be discarded - just a guess ejs 3/7/2018
+    private double discardRatioEntry(GummyDeepPlayGin.Stats playStats) {
+		double ratio = ((double)playStats.voteDiscardCount)/((double)playStats.totalDecisions());
+		return 1.0-Math.abs(ratio-IDEAL_DISCARD_RATIO);
     }
     
     protected static Logger LOGGER = Logger.getLogger(GummyNetworkEvolver.class.getName()); 
@@ -471,51 +488,6 @@ LOGGER.info(i + ": adding " + j + " based on fitness of " + fitness + " (out of 
 		GummyNetworkEvolver.configLogger(lotsaLogger,logsDir.getPath() + "/GummyDeep.log");
 	}
     
-    protected List<ScoredStats> scoreGenerationOLD(List<GummyRunner.GummyRunnerStats> statsList) {
-		int numRunners = statsList.size();
-		List<ScoredStats> scoreCard = new ArrayList<ScoredStats>(numRunners);
-		List<Double> winRatioList = new ArrayList<Double>(numRunners);
-		List<Double> turnsList = new ArrayList<Double>(numRunners);
-		List<Double> rewardList = new ArrayList<Double>(numRunners);
-		List<Double> drawRatioList = new ArrayList<Double>(numRunners);
-		List<Double> voteRatioList = new ArrayList<Double>(numRunners);
-		
-	    for (int i=0; i<numRunners; i++) {
-	    		GummyRunner.GummyRunnerStats runnerStats = statsList.get(i);
-	    		GummySimulatorStats stats = runnerStats.simulatorStats;
-	    		winRatioList.add(stats.getWinRatio()); 
-	    		turnsList.add(stats.avgHandSteps*1.0); 
-	    		rewardList.add(stats.avgHandReward); 
-	    		drawRatioList.add(stats.getDrawRatio()); 
-	    		voteRatioList.add(stats.getDiscardVoteRatio()); 
-	    }
-	    Collections.sort(winRatioList);
-	    Collections.sort(turnsList);
-	    Collections.reverse(turnsList); // lower is better
-	    Collections.sort(rewardList);
-	    Collections.sort(drawRatioList);
-	    Collections.sort(voteRatioList);
-	    for (int i=0; i<numRunners; i++) {
-	    		double score = 0;
-	    		GummyRunner.GummyRunnerStats runnerStats = statsList.get(i);
-	    		GummySimulatorStats stats = runnerStats.simulatorStats;
-	    		for (int j=0; j<numRunners; j++) {
-	    			if (winRatioList.get(j)==stats.getWinRatio()) score+=j;
-	    			if (turnsList.get(j)==stats.avgHandSteps*1.0) score+=j;
-	    			if (rewardList.get(j)==stats.avgHandReward) score+=j;
-	    			if (drawRatioList.get(j)==stats.getDrawRatio()) score+=j/2.0;
-	    			if (voteRatioList.get(j)==stats.getDiscardVoteRatio()) score+=j/2.0;
-	    		}
-	        ScoredStats scoredStats = new ScoredStats(); 
-	        scoredStats.stats = runnerStats;
-	        scoredStats.score = score;
-	    		scoreCard.add(scoredStats);
-	    }
-    
-    		Collections.sort(scoreCard);
-		return scoreCard;
-    }
-
     //**************************************************************************
     //**************************************************************************
     //**************************************************************************
