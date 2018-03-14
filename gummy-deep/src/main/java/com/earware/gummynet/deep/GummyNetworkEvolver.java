@@ -419,12 +419,12 @@ LOGGER.info(i + ": adding " + j*2 + "(" + j + "th place) based on fitness of " +
         			}
         			if (pileRatioList.get(j) == pileRatioEntry) {
         				scoredStats.score += j;
-LOGGER.info(i + ": adding " + j + " based on pileRatioEntry of " + pileRatioEntry + " (out of "+pileRatioList.size()+")");        				
+LOGGER.info(i + ": adding " + j + " based on pileRatioEntry of " + pileRatioEntry + " (out of "+pileRatioList.size()+") " + playStats.toString());        				
         				pileRatioEntry = -10000; 
         			}
         			if (discardRatioList.get(j) == discardRatioEntry) {
         				scoredStats.score += j;
-LOGGER.info(i + ": adding " + j + " based on discardRatioEntry of " + discardRatioEntry + " (out of "+discardRatioList.size()+")");        				
+LOGGER.info(i + ": adding " + j + " based on discardRatioEntry of " + discardRatioEntry + " (out of "+discardRatioList.size()+") " + playStats.toString());        				
         				discardRatioEntry = -10000; 
         			}
         			//if (turnsList.get(j) == turnEntry) {
@@ -455,7 +455,7 @@ LOGGER.info(i + ": adding " + j + " based on discardRatioEntry of " + discardRat
     
     private static final double IDEAL_DISCARD_RATIO = 0.15; // ? most cards in your hand should NOT be discarded - just a guess ejs 3/7/2018
     private double discardRatioEntry(GummyDeepPlayGin.Stats playStats) {
-		double ratio = ((double)playStats.voteDiscardCount)/((double)playStats.totalDecisions());
+		double ratio = ((double)playStats.voteDiscardCount)/((double)(playStats.voteDiscardCount+playStats.voteKeepCount));
 		return 1.0-Math.abs(ratio-IDEAL_DISCARD_RATIO);
     }
     
