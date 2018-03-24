@@ -3,7 +3,9 @@ package com.earware.gummynet.deep;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
+
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.inputs.InputType;
@@ -25,11 +27,51 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 /**
  * @author edward (ed.schwarz@earware.com) 2/22/18 from rubenfiszel (ruben.fiszel@epfl.ch) 
  * 
- * 
  */
 @Value
 public class GummyDQNFactoryConv implements DQNFactory {
 
+	public static class GummyConvConf {
+		// Layer
+        protected String layerName = null;
+        //protected List<LayerConstraint> allParamConstraints;
+        //protected List<LayerConstraint> weightConstraints;
+        //protected List<LayerConstraint> biasConstraints;
+        //protected IDropout iDropout;
+        
+        // BaseLayer
+        //protected IActivation activationFn = null;
+        //protected WeightInit weightInit = null;
+        protected double biasInit = Double.NaN;
+        // protected Distribution dist = null;
+        protected double l1 = Double.NaN;
+        protected double l2 = Double.NaN;
+        protected double l1Bias = Double.NaN;
+        protected double l2Bias = Double.NaN;
+        // protected IUpdater iupdater = null;
+        // protected IUpdater biasUpdater = null;
+        // protected GradientNormalization gradientNormalization = null;
+        // protected double gradientNormalizationThreshold = Double.NaN;
+        // protected IWeightNoise weightNoise;
+        
+        // FeedForwardLayer
+		int nIn;
+		int nOut;
+		
+		// ConvolutionLayer
+	    protected boolean hasBias = true;
+	    protected ConvolutionMode convolutionMode = ConvolutionMode.Truncate; //Default to truncate here - default for 0.6.0 and earlier networks on JSON deserialization
+	    protected int dilation[] = new int[]{1,1};
+	    protected int[] kernelSize; // Square filter
+	    protected int[] stride; // Default is 2. Down-sample by a factor of 2
+	    protected int[] padding;
+	    //protected AlgoMode cudnnAlgoMode = AlgoMode.PREFER_FASTEST;
+	    //protected FwdAlgo cudnnFwdAlgo;
+	    //protected BwdFilterAlgo cudnnBwdFilterAlgo;
+	    //protected BwdDataAlgo cudnnBwdDataAlgo;
+	    
+	}
+	
     Configuration conf;
 
     public DQN buildDQN(int[] shapeInputs, int numOutputs) {

@@ -8,6 +8,9 @@ public class Card implements Comparable<Card> {
 	
 	final Suit suit;
 	final Rank rank; 
+	public Suit getSuit() {return suit;}
+	public Rank getRank() {return rank;}
+
 	public Card(Suit suit, Rank rank) {
 		this.suit=suit;
 		this.rank=rank;

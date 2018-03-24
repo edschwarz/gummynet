@@ -13,6 +13,7 @@ import com.earware.gummynet.gin.PlayGin;
 public class GummyDeepPlayGin {
 	public static void main(String[] args) {
 		int count = 40;
+		int reportingInterval=100;
 		String model1 = args[0];
 		String model2 = model1;
 		if (args.length>1) {
@@ -20,9 +21,11 @@ public class GummyDeepPlayGin {
 		}
 		if (args.length>2) {
 			count = Integer.parseInt(args[2]);
+		}		
+		if (args.length>3) {
+			reportingInterval = Integer.parseInt(args[3]);
 		}
-		
-		play(model1, model2, count);
+		play(model1, model2, count, reportingInterval);
 	}
 	
 	public static class Stats {
@@ -59,11 +62,11 @@ public class GummyDeepPlayGin {
 		}
 	}
 	
-	public static Stats play(String model1, String model2, int count) {
-		return play(model1, null, model2, null, count);
+	public static Stats play(String model1, String model2, int count, int reportingInterval) {
+		return play(model1, null, model2, null, count, reportingInterval);
 	}
 	
-	public static Stats play(String model1, GummyMDP.Rewards rewards1, String model2, GummyMDP.Rewards rewards2, int count) {
+	public static Stats play(String model1, GummyMDP.Rewards rewards1, String model2, GummyMDP.Rewards rewards2, int count, int reportingInterval) {
 		LOGGER.info("**** **** GummyDeepPlayGin playing " + count + " hands using models: " + model1 + " " + model2);
 		Stats stats = new Stats();
 		long startTime = System.currentTimeMillis();
@@ -90,7 +93,7 @@ public class GummyDeepPlayGin {
 				stats.voteKeepCount += ((GummyDeepGinStrategy)strategy2).stats.discardVoteMap.get(0);
 				stats.voteDiscardCount += ((GummyDeepGinStrategy)strategy2).stats.discardVoteMap.get(1);
 			}
-			if ((i+1)%10==0) {
+			if (reportingInterval>0 && (i+1)%reportingInterval==0) {
 				LOGGER.info("**** " + (i+1) + " hands completed");
 				LOGGER.info(report(stats) // + "  ratios: (1) " + strategy1.decisionMap + "   (2) " + strategy2.decisionMap
 						// + "    stats(1): " + strategy1.stats.toString() + "    stats(2): "+ strategy2.stats.toString()
@@ -99,7 +102,14 @@ public class GummyDeepPlayGin {
 		}
 		LOGGER.info("**** FINAL REPORT:");
 		LOGGER.info(report(stats));
-		LOGGER.info(" overall counts: PILE=" + stats.drawPileCount + " DECK=" + stats.drawDeckCount + " KEEP=" + stats.voteKeepCount + "  DISCARD=" + stats.voteDiscardCount);
+		if (getGinStrategy(model1, rewards1) instanceof GummyDeepGinStrategy) {
+			LOGGER.info("histogram for model " + model1);
+			LOGGER.info(GummySmartGinStrategy.formatHistogram(stats.p1WinHistogram));
+		}
+		if (getGinStrategy(model2, rewards2) instanceof GummyDeepGinStrategy) {
+			LOGGER.info("histogram for model " + model2);
+			LOGGER.info(GummySmartGinStrategy.formatHistogram(stats.p2WinHistogram));
+		}
 		return stats;
 	}
 	

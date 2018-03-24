@@ -372,7 +372,7 @@ public class GummyNetworkEvolver {
         		
         		// run the validation
     			LOGGER.info("PLAY - validating model " + i + ": " + model);
-        		GummyDeepPlayGin.Stats playStats = GummyDeepPlayGin.play(model, "bot", validationHands);
+        		GummyDeepPlayGin.Stats playStats = GummyDeepPlayGin.play(model, "bot", validationHands,0);
     			LOGGER.info("PLAY - model " + i + ": " + playStats.winCounts[0] + " model wins -- " + playStats.toString());
         		if (playStats.drawDeckCount == 0 || playStats.drawPileCount==0) {
         			// fell in the hole. Forget it.

@@ -101,7 +101,8 @@ public class GummyRunner {
     															rewards1, 
     															runnerConfig.player2DqnPath, 
     															rewards2, 
-    															200);
+    															runnerConfig.approxNumberOfHandsToPlay,
+    															100);
         runnerStats.playGinStats = stats;
 
         return runnerStats;

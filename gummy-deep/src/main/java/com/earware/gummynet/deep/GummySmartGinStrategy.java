@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.earware.gummynet.gin.Card;
+import com.earware.gummynet.gin.Deck;
 import com.earware.gummynet.gin.GinHand;
 import com.earware.gummynet.gin.GinStrategy;
 import com.earware.gummynet.gin.Move;
@@ -93,6 +94,33 @@ public class GummySmartGinStrategy implements GinStrategy {
     		fitness = Math.pow(fitness, 0.5);  // sqrt
     		fitness = Math.pow(fitness, -1.0);  // invert
     		return fitness;
+    }
+    
+    public static String formatHistogram(double[] histogram) {
+    		String s=null;
+    		int distinct=0;
+    		int total=0;
+    		for (int i=0; i<histogram.length; i++) {
+    			if (histogram[i]>0) {
+    				distinct++;
+    				total+=histogram[i];
+    			}
+    		}
+    		s = "distinct cards: " + distinct + "  winning hands=" + total/7 + "/(" + total + ")";
+		s += '\n';
+		s += "  "; // space for suit
+    		for (int i=0; i<13; i++) {
+    			s += String.format("%5s", i);
+    		}
+    		for (int i=0; i<histogram.length; i++) {
+    			if (i%13==0) {
+    				s += '\n';
+    				s += Card.suitChar(Deck.int2Card(i).getSuit()) 
+    						+ " ";
+    			}
+    			s+= String.format("%4d ", (int) histogram[i]);
+    		}
+    		return s;
     }
     
 	/**
