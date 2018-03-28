@@ -106,11 +106,11 @@ public class GummySmartGinStrategy implements GinStrategy {
     				total+=histogram[i];
     			}
     		}
-    		s = "distinct cards: " + distinct + "  winning hands=" + total/7 + "/(" + total + ")";
+    		s = "distinct cards: " + distinct + "  winning hands=" + total/8 + "/(" + total + ")";
 		s += '\n';
 		s += "  "; // space for suit
     		for (int i=0; i<13; i++) {
-    			s += String.format("%5s", i);
+    			s += String.format("%5s", Card.rankString(Deck.int2Card(i).getRank()));
     		}
     		for (int i=0; i<histogram.length; i++) {
     			if (i%13==0) {
