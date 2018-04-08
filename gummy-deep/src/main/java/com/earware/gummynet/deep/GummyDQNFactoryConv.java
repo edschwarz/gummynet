@@ -92,9 +92,9 @@ public class GummyDQNFactoryConv implements DQNFactory {
                         //.updater(Updater.RMSPROP).rmsDecay(conf.getRmsDecay())
                         .updater(conf.getUpdater() != null ? conf.getUpdater() : new Adam())
                         .weightInit(WeightInit.XAVIER).regularization(true).l2(conf.getL2()).list()
-                        .layer(0, new ConvolutionLayer.Builder(4, 4).nIn(depth).nOut(32).stride(1, 1)
+                        .layer(0, new ConvolutionLayer.Builder(4, 4).nIn(depth).nOut(32)
+                        					.stride(1, 1).padding(3,3)
                                         .activation(Activation.RELU).build());
-
 
         //confB.layer(1, new ConvolutionLayer.Builder(3, 3).nOut(32).stride(1, 1).activation(Activation.RELU).build());
 

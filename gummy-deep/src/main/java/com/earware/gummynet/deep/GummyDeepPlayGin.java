@@ -1,8 +1,11 @@
 package com.earware.gummynet.deep;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.output.NullOutputStream;
 
 import com.earware.gummynet.gin.Card;
 import com.earware.gummynet.gin.Deck;
@@ -70,10 +73,13 @@ public class GummyDeepPlayGin {
 		LOGGER.info("**** **** GummyDeepPlayGin playing " + count + " hands using models: " + model1 + " " + model2);
 		Stats stats = new Stats();
 		long startTime = System.currentTimeMillis();
+		if (reportingInterval==0) {
+			PlayGin.log = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM);
+		}
 		for (int i=0; i<count; i++) {
 			GinStrategy strategy1 = getGinStrategy(model1, rewards1);
 			GinStrategy strategy2 = getGinStrategy(model2, rewards2);
-			GinHand ginHand = PlayGin.playHand(strategy1,strategy2,200);
+			GinHand ginHand = PlayGin.playHand(strategy1,strategy2,200,false);
 			stats.hands++;
 			boolean didWin = ginHand.getCurrentPlayerHand().wins();
 			stats.duration = System.currentTimeMillis() - startTime;

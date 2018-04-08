@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class PlayGin {
-	static PrintStream out = System.out;
+	public static PrintStream log = System.out;
 	// public static Map<String,Integer> winMap = new HashMap<String,Integer>();
 	
 	// Dumbass 0.78% win
@@ -22,8 +22,8 @@ public class PlayGin {
 			}
 		}
 		long duration = System.currentTimeMillis() - startTime;
-		out.println("won " + wins + " hands out of " + count + " in " + duration + "ms = " + String.format("%3.2f%%", ((double)wins/count)*100));
-		out.println("winners: " + winMap);
+		log.println("won " + wins + " hands out of " + count + " in " + duration + "ms = " + String.format("%3.2f%%", ((double)wins/count)*100));
+		log.println("winners: " + winMap);
 	}
 	
 	public static GinHand playHand(GinStrategy strategyOne, GinStrategy strategyTwo) {
@@ -31,20 +31,29 @@ public class PlayGin {
 	}
 	
 	public static GinHand playHand(GinStrategy strategyOne, GinStrategy strategyTwo, int maxTurns) {
+		return playHand(strategyOne, strategyTwo, maxTurns, true);
+	}
+	
+	public static GinHand playHand(GinStrategy strategyOne, GinStrategy strategyTwo, int maxTurns, boolean logWins) {
 		Player p1 = new Player("joe");
 		Player p2 = new Player("annie");
 		GinHand hand = new GinHand(p1, strategyOne, p2, strategyTwo);
-		return playHand(hand, maxTurns);
+		return playHand(hand, maxTurns, logWins);
 	}
 	
 	public static GinHand playHand(GinHand hand) {
 		return playHand(hand, Integer.MAX_VALUE);
 	}
+	
 	public static GinHand playHand(GinHand hand, int maxTurns) {
+		return playHand(hand, maxTurns, true);
+	}
+	
+	public static GinHand playHand(GinHand hand, int maxTurns, boolean logWins) {
 		hand.deal();
 		GinHand.Playing winner = hand.play(maxTurns);
 		if (winner != null) {
-			out.println("WINNER: " + winner.getPlayer().name + "  " + GinTester.asWinningHand(winner.getPlayerHand()).toString());
+			log.println("WINNER: " + winner.getPlayer().name + "  " + GinTester.asWinningHand(winner.getPlayerHand()).toString());
 		}
 		return hand;
 	}
