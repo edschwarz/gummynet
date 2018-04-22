@@ -387,7 +387,7 @@ public class GummyNetworkBatchEvolver {
         		winsList.add(playStats.winCounts[0]);
         		fitnessList.add(stats.fitness);
         		
-        		turnsList.add(turnEntry(playStats.turns())); // reverse, lower is better
+        		turnsList.add(turnEntry(playStats.turns)); // reverse, lower is better
         		pileRatioList.add(pileRatioEntry(playStats));         		
         		discardRatioList.add(discardRatioEntry(playStats));         		
         }
@@ -453,7 +453,7 @@ LOGGER.info(i + ": adding " + increment + " based on discardRatioEntry of " + di
     
     private static final double IDEAL_DRAW_RATIO = 0.1; // most of the time you should draw from the deck - just a guess ejs 3/7/2018 
     private double pileRatioEntry(GummyDeepPlayGin.Stats playStats) {
-		double ratio = ((double)playStats.drawPileCount)/((double)playStats.turns());
+		double ratio = ((double)playStats.drawPileCount)/((double)playStats.turns);
 		return 1.0-Math.abs(ratio-IDEAL_DRAW_RATIO);
     }
     

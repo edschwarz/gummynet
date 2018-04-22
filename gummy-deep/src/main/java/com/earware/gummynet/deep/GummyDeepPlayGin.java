@@ -39,21 +39,26 @@ public class GummyDeepPlayGin {
 		public int drawDeckCount = 0;
 		public int voteKeepCount = 0;
 		public int voteDiscardCount = 0;
+		public int turns = 0;
 		public Map<String,Integer> winMap = new HashMap<String,Integer>();
 		public int[] winCounts = {0,0};
+		public double p1WinRatio() {return ((double)winCounts[0]/hands);}
+		public double p2WinRatio() {return ((double)winCounts[1]/hands);}
 		public double[] p1WinHistogram = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		public double[] p2WinHistogram = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-		public int turns() {return drawPileCount+drawDeckCount;} 
-		public int totalDecisions() {return turns() + voteKeepCount+voteDiscardCount;} 
+		public int totalDecisions() {return turns + voteKeepCount+voteDiscardCount;} 
 		public String toString() {
-			return    " winners: " + winMap + " (p1=" + winCounts[0] + ", p2=" + winCounts[1] + ")" + String.format(" (p1=%3.2f%%, p2=%3.2f%%)", (((double)winCounts[0]/hands)*100), (((double)winCounts[1]/hands)*100))
+			return    String.format("%3.2f%% %3.2f%%", p1WinRatio()*100, p2WinRatio()*100)
+					+ "  " + String.format("%5.3f %5.3f", p1Fitness(), p2Fitness())
+					+ "  " + String.format("%3.2f", (double)turns/(double)hands)
+					+ " winners: " + winMap + " (p1=" + winCounts[0] + ", p2=" + winCounts[1] + ")" + String.format(" (p1=%3.2f%%, p2=%3.2f%%)", (((double)winCounts[0]/hands)*100), (((double)winCounts[1]/hands)*100))
 					+ " total " + wins + "/" + hands + String.format(" (%3.2f%%)", ((double)wins/hands)*100)
 					+ " fitness: [p1=" + String.format("%5.3f", p1Fitness()) + ", p2=" + String.format("%5.3f", p2Fitness()) + "]"  
 					+ " time: " + duration + "ms "   + String.format("(%3.2f ms/hand)", ((double)duration/hands))
 					+ " decision counts: PILE=" + drawPileCount 
-			        					+ " DECK=" + drawDeckCount 
-			        					+ " KEEP=" + voteKeepCount 
-			        					+ " DISCARD=" + voteDiscardCount
+			        		 			+  " DECK=" + drawDeckCount 
+			        					+  " KEEP=" + voteKeepCount 
+			        					+  " DISCARD=" + voteDiscardCount
 			  ;
 		}
 		
@@ -86,19 +91,23 @@ public class GummyDeepPlayGin {
 			if (didWin) {
 				reportWin(stats, ginHand);
 			} 
-			
+
+			int turns=0;
 			if (strategy1 instanceof GummyDeepGinStrategy) {
 				stats.drawPileCount += ((GummyDeepGinStrategy)strategy1).stats.drawMap.get(0);
 				stats.drawDeckCount += ((GummyDeepGinStrategy)strategy1).stats.drawMap.get(1);
 				stats.voteKeepCount += ((GummyDeepGinStrategy)strategy1).stats.discardVoteMap.get(0);
 				stats.voteDiscardCount += ((GummyDeepGinStrategy)strategy1).stats.discardVoteMap.get(1);
+				turns=(int)(((GummyDeepGinStrategy)strategy1).stats.drawMap.get(0) + ((GummyDeepGinStrategy)strategy1).stats.drawMap.get(1)); 
 			}
 			if (strategy2 instanceof GummyDeepGinStrategy) {
 				stats.drawPileCount += ((GummyDeepGinStrategy)strategy2).stats.drawMap.get(0);
 				stats.drawDeckCount += ((GummyDeepGinStrategy)strategy2).stats.drawMap.get(1);
 				stats.voteKeepCount += ((GummyDeepGinStrategy)strategy2).stats.discardVoteMap.get(0);
 				stats.voteDiscardCount += ((GummyDeepGinStrategy)strategy2).stats.discardVoteMap.get(1);
+				turns=(int)(((GummyDeepGinStrategy)strategy2).stats.drawMap.get(0) + ((GummyDeepGinStrategy)strategy2).stats.drawMap.get(1)); 
 			}
+			stats.turns += turns;
 			if (reportingInterval>0 && (i+1)%reportingInterval==0) {
 				LOGGER.info("**** " + (i+1) + " hands completed");
 				LOGGER.info(report(stats) // + "  ratios: (1) " + strategy1.decisionMap + "   (2) " + strategy2.decisionMap
