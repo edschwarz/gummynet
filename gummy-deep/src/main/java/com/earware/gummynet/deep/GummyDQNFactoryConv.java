@@ -83,6 +83,7 @@ public class GummyDQNFactoryConv implements DQNFactory {
     
     public DQN buildDQN(int height, int width, int depth, int numOutputs) {
 
+    		int nextLayer = 0;
         NeuralNetConfiguration.ListBuilder confB = new NeuralNetConfiguration.Builder().seed(Constants.NEURAL_NET_SEED)
                         .iterations(1).optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                         .learningRate(conf.getLearningRate())
@@ -92,15 +93,27 @@ public class GummyDQNFactoryConv implements DQNFactory {
                         //.updater(Updater.RMSPROP).rmsDecay(conf.getRmsDecay())
                         .updater(conf.getUpdater() != null ? conf.getUpdater() : new Adam())
                         .weightInit(WeightInit.XAVIER).regularization(true).l2(conf.getL2()).list()
-                        .layer(0, new ConvolutionLayer.Builder(4, 4).nIn(depth).nOut(32)
-                        					.stride(1, 1).padding(3,3)
-                                        .activation(Activation.RELU).build());
+                        .layer(nextLayer++, new ConvolutionLayer.Builder(4, 4)
+                        									.nIn(depth)
+                        									.nOut(32)
+                        									.stride(1, 1).padding(3,3)
+                        									.activation(Activation.RELU)
+                        									.build());
 
-        //confB.layer(1, new ConvolutionLayer.Builder(3, 3).nOut(32).stride(1, 1).activation(Activation.RELU).build());
+        //confB.layer(nextLayer++, new ConvolutionLayer.Builder(3, 3)
+        //					.nOut(32)
+        //					.stride(1, 1).padding(2,2)
+        //					.activation(Activation.RELU)
+        //					.build());
 
-        confB.layer(1, new DenseLayer.Builder().nOut(8).activation(Activation.RELU).build());
+        confB.layer(nextLayer++, new DenseLayer.Builder()
+        					.nOut(8)
+        					.activation(Activation.RELU)
+        					.build());
 
-        confB.layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.IDENTITY).nOut(numOutputs)
+        confB.layer(nextLayer++, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
+        					.activation(Activation.IDENTITY)
+        					.nOut(numOutputs)
                         .build());
 
         confB.setInputType(InputType.convolutional(height, width, depth));
