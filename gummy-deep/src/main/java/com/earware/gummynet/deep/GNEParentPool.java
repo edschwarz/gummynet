@@ -15,6 +15,7 @@ class GNEParentPool {
 		String dqnPath;
 		public GummyDeepPlayGin.Stats playStats=null;
 		public ArrayList<GneParentStats> progenyStats = new ArrayList<GneParentStats>();
+		int numSelections=0;
 		public GneParentStats(String dqnPath, GummyDeepPlayGin.Stats playStats) {
 			this.dqnPath= dqnPath; 
 			this.playStats=playStats;
@@ -22,12 +23,24 @@ class GNEParentPool {
 		
 		public double score() {
 			double score =  playStats.p1WinRatio() * playStats.p1Fitness();
+			if (numProgeny()>0) {
+				score += progenyRatio() * averageProgenyScore();
+			}
 			return score;
 		}
+		
 		public double averageProgenyScore() {
 			double totScore=0; 
 			for (GneParentStats stats : progenyStats) totScore+=stats.score();
 			return totScore/progenyStats.size();
+		}
+		
+		public double progenyRatio() {
+			return numSelections>0?((double)numProgeny())/((double)numSelections):0.0;
+		}
+		
+		public int numProgeny() {
+			return progenyStats.size();
 		}
 		
 		@Override
@@ -38,9 +51,10 @@ class GNEParentPool {
 		@Override
 		public String toString() {
 			return 		"dqnPath=" + dqnPath
-					+ "  score=" + score()
-					+ "  numProgeny=" + progenyStats.size()
-					+ "  averageProgenyScore=" + averageProgenyScore()
+					+ "  score=" + String.format("%3.4f", score())
+					+ "  numSelections=" + numSelections
+					+ "  numProgeny=" + numProgeny() + " " + String.format("(%3.4f%%)", progenyRatio())
+					+ "  averageProgenyScore=" + String.format("%3.4f", averageProgenyScore())
 					+ "  playStats=" + playStats.toString();
 		}
 	}
@@ -84,20 +98,32 @@ class GNEParentPool {
 			totalScore += candidateEntry.stats.score();
 		}
 		double choiceVal = Math.random()*totalScore;
-		totalScore=0;
+		double selectionTotal=0;
+		boolean broke=false;
 		for (int i=0; i<activePoolSize && i<pool.size(); i++) {
 			parentEntry = pool.get(i);
-			totalScore += parentEntry.stats.score();
-			if (totalScore >= choiceVal) {
+			selectionTotal += parentEntry.stats.score();
+			if (selectionTotal >= choiceVal) {
+				broke=true;
 				break;
 			}
 		}
+		
+		if (!broke) {
+			LOGGER.warning("SELECT ISSUE: did not exit via break.");
+		}
 		confirmPoolFile(parentEntry);
-		LOGGER.info("SELECTED: " + parentEntry.toString());
+		parentEntry.stats.numSelections++;
+		LOGGER.info("SELECTED: " 
+							+ String.format("@%2.4f/%2.4f/%2.4f", choiceVal, selectionTotal, totalScore) 
+							+ " -- "  + parentEntry.toString());
 		return parentEntry.dqnPath();
 	}
 	
 	public void addProgeny(String dqnPath, GummyDeepPlayGin.Stats playStats, String parentDqnPath) {
+		if (pool.size()==0) {
+			return;
+		}
 		PoolEntry newPE = new PoolEntry(new GneParentStats(dqnPath, playStats));
 		for (PoolEntry pe : pool) {
 			if (pe.dqnPath().equals(parentDqnPath)) {
