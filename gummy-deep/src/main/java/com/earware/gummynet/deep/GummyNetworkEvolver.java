@@ -2,15 +2,17 @@ package com.earware.gummynet.deep;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Date;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 public class GummyNetworkEvolver {
 	public final static String MODELS_DIR = "models";
@@ -108,8 +110,8 @@ public class GummyNetworkEvolver {
     		if (config.motherDqnFilePath!=null && config.motherDqnFilePath.length()>0) {
     			// TODO - currently loadModel is private in gummyRunner, maybe GummyDQN? Factory issues?
     			File motherFile = new File(config.motherDqnFilePath);
-    			if (!motherFile.exists() || !motherFile.canRead() || !motherFile.isFile()) {
-    				throw new IllegalArgumentException("motherDqnFilePath \"" + config.motherDqnFilePath + "\": cannot find/read/use this file");
+    			if (!motherFile.exists() || !motherFile.canRead()) {
+    				throw new IllegalArgumentException("motherDqnFilePath \"" + config.motherDqnFilePath + "\": cannot find or read this file");
     			}
     		}
     		
@@ -123,7 +125,7 @@ public class GummyNetworkEvolver {
     			logsDir.mkdirs();
     		}
     		
-    		fixupLogging(logsDir);
+    		GNELogging.fixupLogging(logsDir);
     		LOGGER.info("evolution begins: " + config.toString());
     		
 		localConfig.gummyConfigFilePath = targetDir.getPath() + "/" + LOCAL_GUMMY_CONFIG_PATH;
@@ -134,8 +136,14 @@ public class GummyNetworkEvolver {
     			new GummyConfig().save(localConfig.gummyConfigFilePath);
     		}
     		if (config.motherDqnFilePath!=null && config.motherDqnFilePath.length()>0) {
-    			localConfig.motherDqnFilePath = targetDir.getPath() + "/" + LOCAL_MOTHER_DQN_PATH;
-    			fileCopy(new File(config.motherDqnFilePath), new File(localConfig.motherDqnFilePath));
+    			File motherDqnFile = new File(config.motherDqnFilePath);
+    			if (motherDqnFile.isFile()) {
+    				localConfig.motherDqnFilePath = targetDir.getPath() + "/" + LOCAL_MOTHER_DQN_PATH;
+    				fileCopy(motherDqnFile, new File(localConfig.motherDqnFilePath));
+    			} else {
+    				File poolDir = poolCopy(motherDqnFile, new File(targetDir.getPath() + "/" + MODELS_DIR));
+    				localConfig.motherDqnFilePath = poolDir.getPath();
+    			}
     		}
     		
     		List<GNEParentPool.GneParentStats> gneStats = evolveLocal(localConfig);
@@ -155,6 +163,19 @@ public class GummyNetworkEvolver {
     		return Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile();
     }
 
+    protected File poolCopy(File sourceDir, File poolDir) throws IOException {
+    		Files.walkFileTree(sourceDir.toPath(), new HashSet<FileVisitOption>(), 1, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                		File f = file.toFile();
+                		if (f.isFile()) {
+                			fileCopy(f, new File(poolDir, f.getName()));
+                		}
+                    return FileVisitResult.CONTINUE;
+                }});
+    		return poolDir;
+    }
+    
     protected File createTempDir() throws IOException {
     		return Files.createTempDirectory(
     				"GNEtmp" + System.currentTimeMillis()).toFile();
@@ -180,11 +201,7 @@ public class GummyNetworkEvolver {
 		
 		// baseline input model, if any
 		if (localConfig.motherDqnFilePath!=null) {
-			String mother = localConfig.motherDqnFilePath;
-			LOGGER.info("BASELINE - model " + mother + ": baselining begins");
-			GummyDeepPlayGin.Stats motherStats = GummyDeepPlayGin.play(mother, "bot", localConfig.validationHandsPerProgeny, 0);
-			LOGGER.info("BASELINE - model " + mother + ": " + motherStats.winCounts[0] + " model wins -- " + motherStats.toString());
-			pool.addParent(mother, motherStats);
+			initPool(localConfig.motherDqnFilePath, localConfig.validationHandsPerProgeny, pool);
 		}
 				
 		for (int progeny=1; progeny<=localConfig.progenyPerGeneration; progeny++) {
@@ -230,13 +247,55 @@ public class GummyNetworkEvolver {
         		
         		// add to pool
         		pool.addProgeny(progenyPath, validateStats, parentDqnPath);
-        		        		
+        		
+        		LOGGER.info("***** SCOREBOARD\n" + pool.getScoreboard().scoreboardString(40));     		
 		}	
 		
 		return pool.getStatsList();
     }
+
+    protected boolean initPool(String motherDqnFilePath, int benchmarkHands, GNEParentPool pool) throws IOException {
+    		if (motherDqnFilePath==null || motherDqnFilePath.length()==0 || benchmarkHands<1 || pool==null) {
+    			return false;
+    		}
+    		File motherFile = new File(motherDqnFilePath);
+    		if (motherFile.isDirectory()) {
+    			LOGGER.info("initializing pool from " + motherDqnFilePath);
+    			final List<Integer> totalAdded=new ArrayList<Integer>();totalAdded.add(0);
+        		Files.walkFileTree(motherFile.toPath(), new HashSet<FileVisitOption>(), 1, 
+        				new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    		File f = file.toFile();
+                    		if (initPoolModel(f.getPath(), benchmarkHands, pool)) {
+                    			totalAdded.set(0, totalAdded.get(0)+1);
+                    		}
+                        return FileVisitResult.CONTINUE;
+                    }});
+    			LOGGER.info("initialized " + totalAdded.get(0) + " models to pool from " + motherDqnFilePath);
+    		} else {
+    			boolean loadedOK = initPoolModel(motherDqnFilePath, benchmarkHands, pool);
+    			if (!loadedOK) {
+    				throw new IllegalArgumentException("cannot load file " + motherDqnFilePath + " as a DQN");
+    			}
+    		}
+		return true;
+    }
     
-    private GummyRunner.GummyRunnerStats train( String dqnPath, 
+    private boolean initPoolModel(String motherDqnFilePath, int benchmarkHands, GNEParentPool pool) {
+    		try {
+    			String mother = motherDqnFilePath;
+    			LOGGER.info("BASELINE - model " + mother + ": baselining begins");
+    			GummyDeepPlayGin.Stats motherStats = GummyDeepPlayGin.play(mother, "bot", benchmarkHands, 0);
+    			LOGGER.info("BASELINE - model " + mother + ": " + motherStats.winCounts[0] + " model wins -- " + motherStats.toString());
+    			pool.addParent(mother, motherStats);
+    		} catch (Exception e) {
+    			return false;
+    		}
+		return true;
+    }
+        
+    protected GummyRunner.GummyRunnerStats train( String dqnPath, 
     											   File tmpDir, 
     											   GummyConfig gummyConfig,
     											   String newModelCreatePath)  throws IOException {
@@ -320,112 +379,4 @@ public class GummyNetworkEvolver {
     }
     
     protected static Logger LOGGER = Logger.getLogger(GummyNetworkEvolver.class.getName()); 
-    private static void configLogger(Logger logger, String logPath) {try {Handler handler=new FileHandler(logPath); handler.setFormatter(new SimpleFormatter()); logger.addHandler(handler);} catch (Exception e) {e.printStackTrace();}}
-	// static {configLogger(LOGGER, LOCAL_LOG_PATH);}
-    private static void fixupLogging(File logsDir) {
-		String loggerName = LOGGER.getName();
-		LOGGER=Logger.getLogger(loggerName+"_Evolver");
-		GummyNetworkEvolver.configLogger(LOGGER, logsDir.getPath() + "/" + GummyNetworkEvolver.LOCAL_LOG_FILE_NAME);
-		
-		GummyRunner.LOGGER=Logger.getLogger(loggerName+"_Runner");
-		GummyNetworkEvolver.configLogger(GummyRunner.LOGGER, logsDir.getPath() + "/GummyRunner.log");
-	
-		GummyDeepGinStrategy.LOGGER = Logger.getLogger(loggerName+"_others");
-		GummyDeepPlayGin.LOGGER=Logger.getLogger(loggerName+"_Player");
-		GummyNetworkEvolver.configLogger(GummyDeepPlayGin.LOGGER, logsDir.getPath() + "/GummyDeepPlayGin.log");
-	
-		Logger lotsaLogger = Logger.getLogger(GummyMDP.class.getSimpleName());
-		GummyDeepUI.LOGGER = Logger.getLogger(loggerName+"_others"); 
-		GummySimulator.LOGGER = Logger.getLogger(loggerName+"_others");
-		GummyMDP.LOGGER = Logger.getLogger(loggerName+"_others");
-		// StatsGummyMDP.LOGGER = Logger.getLogger(loggerName+"_others");
-		GummyDeepGinStrategy.LOGGER = Logger.getLogger(loggerName+"_others");
-		
-		GummyNetworkEvolver.configLogger(Logger.getLogger(loggerName+"_others"),logsDir.getPath() + "/GummyDeep.log");
-		if (lotsaLogger.getHandlers().length>0) {
-			lotsaLogger.removeHandler(lotsaLogger.getHandlers()[lotsaLogger.getHandlers().length-1]);
-		}
-		GummyNetworkEvolver.configLogger(lotsaLogger,logsDir.getPath() + "/GummyDeep.log");
-	}
-    
-    //**************************************************************************
-    //**************************************************************************
-    //**************************************************************************
-    //**************************************************************************
-    public static void main(String[] args) throws IOException {
-        LOGGER.info("main: executed at: " + new Date());
-        LOGGER.info("main: args: " + Arrays.toString(args));
-
-        Config config=new Config();
-		
-		for (int i=0; i<args.length; i++) {
-			String arg=args[i];
-			if (arg.startsWith("-") && arg.length()>1) {
-				String flag=arg.substring(1);
-				if        (flag.equals("c") && args.length>i+1) {
-					config.gummyConfigFilePath=args[++i];
-				} else if (flag.equals("m") && args.length>i+1) {
-					config.motherDqnFilePath=args[++i];
-				} else if (flag.equals("p") && args.length>i+1) {
-					config.progenyPerGeneration=Integer.parseInt(args[++i]);
-				} else if (flag.equals("l") && args.length>i+1) {
-					config.learningHandsPerProgeny=Integer.parseInt(args[++i]);
-				} else if (flag.equals("s") && args.length>i+1) {
-					config.stochasticHandsPerLearning=Integer.parseInt(args[++i]);
-				} else if (flag.equals("d") && args.length>i+1) {
-					config.targetDirectoryForEvolution=args[++i];
-				} else if (flag.equals("b") && args.length>i+1) {
-					config.useBot=Boolean.parseBoolean(args[++i]);
-				} else if (flag.equals("v") && args.length>i+1) {
-					config.validationHandsPerProgeny=Integer.parseInt(args[++i]);
-				} else if (flag.equals("f") && args.length>i+1) {
-					config.filterHandsPerProgeny=Integer.parseInt(args[++i]);
-				} else if (flag.equals("w") && args.length>i+1) {
-					config.filterMinimumWins=Integer.parseInt(args[++i]);
-				} else if (flag.equals("t") && args.length>i+1) {
-					config.filterMinimumFitness=Double.parseDouble(args[++i]);
-				} else {
-					LOGGER.warning("unknown flag: " + arg); 
-					printUsage();
-				}
-			} else {
-				LOGGER.warning("expected flag, got: " + arg); 
-				printUsage();
-				return;
-			}
-		}
-		
-        try {
-        		List<GNEParentPool.GneParentStats> evolvedStats 
-        				= new GummyNetworkEvolver().evolveDirectory(config);
-        		
-        		if (evolvedStats!=null) {
-        			LOGGER.info("main: winner: " + evolvedStats.toString());
-        		} else {
-        			LOGGER.info("main: no survivors");
-        		}
-        } catch (Exception e) {
-    			e.printStackTrace();
-        }
-    }
-    
-    private static String usage="     -c GummyConfig json file path (default=new GummyConfig())\n" + 
-    		"     -m mother dqn file path (default=random models will be used for the first generation progeny)\n" + 
-    		"     -p progeny per generation [formerly \"runners\"] (default=10)\n" + 
-    		"     -l learning hands per progeny (default=30)\n" + 
-    		"     -s stochastic hands per learning (default=10, must be < -l)\n" + 
-    		"     -f filter (for complete losers) hands per progeny (default=40)\n" + 
-    		"     -w minimum wins needed to pass filter (default=0)\n" + 
-    		"     -t minimum fitness needed to pass filter (default=0)\n" + 
-    		"     -v validation hands per progeny (default=400)\n" + 
-    		"     -b bot-based training (default=true, if false each progeny will train against itself)\n" + 
-    		"     -d directory to create-or-use (default=\"./gne\"+hashcode(ctor datetime))\n" +
-    		""
-    		;
-    
-    public static void printUsage() {LOGGER.info(usage);}
-    //**************************************************************************
-    //**************************************************************************
-    //**************************************************************************
-    //**************************************************************************
 }

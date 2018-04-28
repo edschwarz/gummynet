@@ -10,12 +10,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-class GNEParentPool {
+public class GNEParentPool {
+	
 	public static class GneParentStats implements Comparable<GneParentStats> {
-		String dqnPath;
+		public String dqnPath;
 		public GummyDeepPlayGin.Stats playStats=null;
 		public ArrayList<GneParentStats> progenyStats = new ArrayList<GneParentStats>();
-		int numSelections=0;
+		public int numSelections=0;
 		public GneParentStats(String dqnPath, GummyDeepPlayGin.Stats playStats) {
 			this.dqnPath= dqnPath; 
 			this.playStats=playStats;
@@ -58,51 +59,38 @@ class GNEParentPool {
 					+ "  playStats=" + playStats.toString();
 		}
 	}
-	private class PoolEntry implements Comparable<PoolEntry> {
-		GneParentStats stats;
-		ArrayList<PoolEntry> progeny = new ArrayList<PoolEntry>();
-		
-		String dqnPath() {return stats.dqnPath;}
-		public PoolEntry(GneParentStats stats) {
-			this.stats = stats;
-		}
-		@Override
-		public int compareTo(PoolEntry o) {
-			if (o==null) return 0;
-			return stats.compareTo(o.stats);
-		}
-		@Override
-		public String toString() {
-			return stats.toString();
-		}
-	}
 	
+	// *********************************************
 	public File poolDir;
-	List<PoolEntry> pool = new ArrayList<PoolEntry>(); 
+	List<GneParentStats> pool = new ArrayList<GneParentStats>(); 
 	int activePoolSize = 10;
+	List<GneParentStats> selected = new ArrayList<GneParentStats>();
+	private int poolNdx = 1; 
+	GneParentPoolScoreboard scoreboard=null;
 	
+	// *********************************************
 	GNEParentPool(File poolDir) {this.poolDir = poolDir;}
 	
 	/** select from top "activePoolSize" entries, with choice weighted by score */ 
 	public String getParentFromPool() throws IOException {
-		LOGGER.info("SELECTING from top " + activePoolSize 
-				+ " out of pool of " + pool.size() + ": " + pool.toString());
+		//LOGGER.info("SELECTING from top " + activePoolSize 
+		//		+ " out of pool of " + pool.size() + ": " + pool.toString());
 		if (pool.size()==0) {
 			return null;
 		}
 		sortPool();
-		PoolEntry parentEntry=null;
+		GneParentStats parentStats=null;
 		double totalScore=0;
 		for (int i=0; i<activePoolSize && i<pool.size(); i++) {
-			PoolEntry candidateEntry = pool.get(i);
-			totalScore += candidateEntry.stats.score();
+			GneParentStats candidateStats = pool.get(i);
+			totalScore += candidateStats.score();
 		}
 		double choiceVal = Math.random()*totalScore;
 		double selectionTotal=0;
 		boolean broke=false;
 		for (int i=0; i<activePoolSize && i<pool.size(); i++) {
-			parentEntry = pool.get(i);
-			selectionTotal += parentEntry.stats.score();
+			parentStats = pool.get(i);
+			selectionTotal += parentStats.score();
 			if (selectionTotal >= choiceVal) {
 				broke=true;
 				break;
@@ -112,23 +100,23 @@ class GNEParentPool {
 		if (!broke) {
 			LOGGER.warning("SELECT ISSUE: did not exit via break.");
 		}
-		confirmPoolFile(parentEntry);
-		parentEntry.stats.numSelections++;
+		confirmPoolFile(parentStats);
+		parentStats.numSelections++;
+		selected.add(parentStats);
 		LOGGER.info("SELECTED: " 
 							+ String.format("@%2.4f/%2.4f/%2.4f", choiceVal, selectionTotal, totalScore) 
-							+ " -- "  + parentEntry.toString());
-		return parentEntry.dqnPath();
+							+ " -- "  + parentStats.toString());
+		return parentStats.dqnPath;
 	}
 	
 	public void addProgeny(String dqnPath, GummyDeepPlayGin.Stats playStats, String parentDqnPath) {
 		if (pool.size()==0) {
 			return;
 		}
-		PoolEntry newPE = new PoolEntry(new GneParentStats(dqnPath, playStats));
-		for (PoolEntry pe : pool) {
-			if (pe.dqnPath().equals(parentDqnPath)) {
-				pe.progeny.add(newPE);
-				pe.stats.progenyStats.add(newPE.stats);
+		GneParentStats newPE = new GneParentStats(dqnPath, playStats);
+		for (GneParentStats pe : pool) {
+			if (pe.dqnPath.equals(parentDqnPath)) {
+				pe.progenyStats.add(newPE);
 			}
 		}
 		pool.add(newPE);
@@ -148,33 +136,41 @@ class GNEParentPool {
 	}
 	
 	public void addParent(String dqnPath, GummyDeepPlayGin.Stats playStats) {
-		pool.add(new PoolEntry(new GneParentStats(dqnPath, playStats)));
+		pool.add(new GneParentStats(dqnPath, playStats));
 	}
 	
+	// a copy of the list, the actual stats tho
 	public List<GneParentStats> getStatsList() {
 		ArrayList<GneParentStats> rez = new ArrayList<GneParentStats>();
-		for (PoolEntry pe : pool) {
-			rez.add(pe.stats);
+		for (GneParentStats pe : pool) {
+			rez.add(pe);
 		}
 		Collections.sort(rez);
 		Collections.reverse(rez);
 		return rez;
 	}
-
-	private static int poolNdx = 1; 
-	private void confirmPoolFile(PoolEntry pe) throws IOException {
-		if (pe==null || pe.dqnPath()==null) {
+	
+	private void confirmPoolFile(GneParentStats pe) throws IOException {
+		if (pe==null || pe.dqnPath==null) {
 			return;
 		}
-		File sourceFile = new File(pe.dqnPath());
+		File sourceFile = new File(pe.dqnPath);
 		File sourceDir = sourceFile.getParentFile();
 		if (!poolDir.equals(sourceDir)) {
 			String targetFilename = sourceFile.getName() + ".pool." + poolNdx++; 
 			Path targetPath = Files.copy(sourceFile.toPath(), 
 					new File(poolDir, targetFilename).toPath(), 
 					StandardCopyOption.REPLACE_EXISTING);
-			pe.stats.dqnPath = targetPath.toString();
+			pe.dqnPath = targetPath.toString();
 		}
 	}	
+	
+	GneParentPoolScoreboard getScoreboard() {
+		if (scoreboard==null) {
+			scoreboard = new GneParentPoolScoreboard(this);
+		}
+		return scoreboard;
+	}
+	
     protected static Logger LOGGER = Logger.getLogger(GummyNetworkEvolver.class.getName()); 
 }

@@ -1,0 +1,42 @@
+ <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>com.earware</groupId>
+        <artifactId>gummynet</artifactId>
+        <version>0.1.1</version>
+    </parent>
+
+    <groupId>com.earware.gummynet</groupId>
+    <artifactId>gummy-deep-ui</artifactId>
+    <version>${project.version}</version>
+    <packaging>jar</packaging>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>gummy-deepi-ui</name>
+
+    <properties>
+    </properties>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.earware.gummynet</groupId>
+            <artifactId>gummy-deep</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+<!--  
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>rl4j-core</artifactId>
+            <version>${rl4j.version}</version>
+        </dependency>
+-->
+    </dependencies>
+</project>
+
