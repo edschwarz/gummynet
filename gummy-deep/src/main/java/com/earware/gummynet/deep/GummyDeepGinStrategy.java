@@ -114,7 +114,7 @@ public class GummyDeepGinStrategy implements GinStrategy {
     		try {
     			mln = ModelSerializer.restoreMultiLayerNetwork(path, true);
     		} catch (IOException e) {
-    			LOGGER.severe("Cannot load DQN: " + e.getMessage());
+    			LOGGER.severe("Cannot load DQN at path \"" + path + "\": " + e.getMessage());
     			throw new IllegalArgumentException("IOException trying to load DQN",e); 
 		}
     		loadedDQN = new DQN(mln);

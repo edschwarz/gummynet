@@ -33,7 +33,9 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <!-- <minimizeJar>true</minimizeJar> -->
+        <!-- 
+                             <minimizeJar>true</minimizeJar> KILL ME
+ -->            
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -81,7 +83,7 @@
 			<version>0.9.1</version>
 		</dependency>
 	    
-	    	<dependency>
+	    <dependency>
 	            <groupId>com.earware.gummynet</groupId>
 	            <artifactId>gummy-gin</artifactId>
 	            <version>${project.version}</version>

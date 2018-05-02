@@ -3,7 +3,6 @@ package com.earware.gummynet.deep;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 import com.earware.gummynet.deep.GummyNetworkEvolver.Config;
@@ -20,6 +19,41 @@ public class GNE {
         LOGGER.info("main: executed at: " + new Date());
         LOGGER.info("main: args: " + Arrays.toString(args));
 
+        Config config = processCommandLine(args);
+        if (config==null) return; // bad args
+		
+        try {
+        		GummyNetworkEvolver.Stats evolvedStats 
+        				= new GummyNetworkEvolver().evolve(config);
+        		
+        		if (evolvedStats!=null) {
+        			LOGGER.info("main: winner: " + evolvedStats.toString());
+        		} else {
+        			LOGGER.info("main: no survivors");
+        		}
+        } catch (Exception e) {
+    			e.printStackTrace();
+        }
+    }
+    
+    private static String usage="     -c GummyConfig json file path (default=new GummyConfig())\n" + 
+    		"     -m mother dqn file path (default=random models will be generated/no actual progeny, if a directory is specified all dqn files in the directory will be benchmarked into the pool)\n" + 
+    		"     -p progeny to create (default=10)\n" + 
+    		"     -l learning hands per progeny (default=30)\n" + 
+    		"     -s stochastic hands per learning (default=10, must be < -l)\n" + 
+    		"     -f filter (for complete losers) hands per progeny (default=40)\n" + 
+    		"     -w minimum wins needed to pass filter (default=0)\n" + 
+    		"     -t minimum fitness needed to pass filter (default=0)\n" + 
+    		"     -v validation hands per progeny (default=400)\n" + 
+    		"     -b bot-based training (default=true, if false each progeny will train against itself)\n" + 
+    		"     -d directory to create-or-use (default=\"./gne\"+hashcode(ctor datetime))\n" +
+    		""
+    		;
+    
+    public static void printUsage() {LOGGER.info(usage);}
+    //**************************************************************************
+    
+    public static Config processCommandLine(String[] args) {
         Config config=new Config();
 		
 		for (int i=0; i<args.length; i++) {
@@ -55,40 +89,13 @@ public class GNE {
 			} else {
 				LOGGER.warning("expected flag, got: " + arg); 
 				printUsage();
-				return;
+				return null;
 			}
 		}
-		
-        try {
-        		List<GNEParentPool.GneParentStats> evolvedStats 
-        				= new GummyNetworkEvolver().evolveDirectory(config);
-        		
-        		if (evolvedStats!=null) {
-        			LOGGER.info("main: winner: " + evolvedStats.toString());
-        		} else {
-        			LOGGER.info("main: no survivors");
-        		}
-        } catch (Exception e) {
-    			e.printStackTrace();
-        }
+		return config;
     }
     
-    private static String usage="     -c GummyConfig json file path (default=new GummyConfig())\n" + 
-    		"     -m mother dqn file path (default=random models will be generated/no actual progeny, if a directory is specified all dqn files in the directory will be benchmarked into the pool)\n" + 
-    		"     -p progeny to create (default=10)\n" + 
-    		"     -l learning hands per progeny (default=30)\n" + 
-    		"     -s stochastic hands per learning (default=10, must be < -l)\n" + 
-    		"     -f filter (for complete losers) hands per progeny (default=40)\n" + 
-    		"     -w minimum wins needed to pass filter (default=0)\n" + 
-    		"     -t minimum fitness needed to pass filter (default=0)\n" + 
-    		"     -v validation hands per progeny (default=400)\n" + 
-    		"     -b bot-based training (default=true, if false each progeny will train against itself)\n" + 
-    		"     -d directory to create-or-use (default=\"./gne\"+hashcode(ctor datetime))\n" +
-    		""
-    		;
     
-    public static void printUsage() {LOGGER.info(usage);}
-    //**************************************************************************
     //**************************************************************************
     //**************************************************************************
     //**************************************************************************

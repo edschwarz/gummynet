@@ -25,8 +25,12 @@ public class GneParentPoolScoreboard {
 	public String scoreboardString(int howFarBack) {
 		String rez = "";
 		List<ScoreboardEntry> board = scoreboard(howFarBack);
-		for (ScoreboardEntry e : board) {
-			rez += boardFormat(e);
+		if (board.size()>0) {
+			for (ScoreboardEntry e : board) {
+				rez += boardFormat(e);
+			}
+		} else {
+			rez = "no models selected from the pool yet.";
 		}
 		return rez;
 	}
@@ -40,7 +44,7 @@ public class GneParentPoolScoreboard {
 		// java.util.SortedMap<Integer, String> 
 		for (int i=startNdx; i<selected.size(); i++) {
 			GneParentStats s = selected.get(i);
-			if (counters.get(s)==null) counters.put(s,1);
+			if (counters.get(s)==null) counters.put(s,0);
 			counters.put(s,counters.get(s)+1);
 		}
 		

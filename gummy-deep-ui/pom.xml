@@ -1,28 +1,82 @@
  <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <parent>
-        <groupId>com.earware</groupId>
-        <artifactId>gummynet</artifactId>
-        <version>0.1.1</version>
-    </parent>
-
-    <groupId>com.earware.gummynet</groupId>
-    <artifactId>gummy-deep-ui</artifactId>
-    <version>${project.version}</version>
-    <packaging>jar</packaging>
-    <modelVersion>4.0.0</modelVersion>
-
-    <name>gummy-deepi-ui</name>
-
-    <properties>
-    </properties>
-
-    <build>
-        <plugins>
-        </plugins>
-    </build>
-
+	<parent>
+	    <groupId>com.earware</groupId>
+	    <artifactId>gummynet</artifactId>
+	    <version>0.1.1</version>
+	</parent>
+	
+	<groupId>com.earware.gummynet</groupId>
+	<artifactId>gummy-deep-ui</artifactId>
+	<version>${project.version}</version>
+	<packaging>war</packaging>
+	<modelVersion>4.0.0</modelVersion>
+	
+	<name>gummy-deepi-ui</name>
+	
+	<properties>
+        <rl4j.version>0.9.1</rl4j.version>
+		<jersey.version>2.25</jersey.version>
+		<jetty.version>9.2.14.v20151106</jetty.version>
+	</properties>
+	
+	<build>
+	    <plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+					        <id>package-jar</id>
+					        <phase>package</phase>
+					        <goals>
+					                <goal>jar</goal>
+					        </goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <!--  <minimizeJar>true</minimizeJar> -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>reference.conf</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.earware.gummynet.deep.ui.GNERestServer</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			
+	    </plugins>
+	</build>
+	
     <dependencies>
 
         <dependency>
@@ -30,13 +84,76 @@
             <artifactId>gummy-deep</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--  
         <dependency>
             <groupId>org.deeplearning4j</groupId>
-            <artifactId>rl4j-core</artifactId>
+            <artifactId>rl4j-examples</artifactId>
             <version>${rl4j.version}</version>
+            <scope>provided</scope>
         </dependency>
--->
+	    <dependency>
+			<groupId>org.deeplearning4j</groupId>
+			<artifactId>deeplearning4j-ui_2.11</artifactId>
+			<version>0.9.1</version>
+            <scope>provided</scope>
+		</dependency>
+	    <dependency>
+            <groupId>com.earware.gummynet</groupId>
+            <artifactId>gummy-gin</artifactId>
+            <version>${project.version}</version>
+			<scope>provided</scope>
+	    </dependency>
+<!-- 
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>2.26</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>2.26</version>
+		</dependency>
+ -->
+ 
+ 		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+    		
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-jetty-http</artifactId>
+			<version>${jersey.version}</version>
+		    <exclusions>
+		        <exclusion>
+		            <groupId>org.eclipse.jetty</groupId>
+		            <artifactId>jetty-util</artifactId>
+		        </exclusion>
+		    </exclusions>
+    	</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>		
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<!-- 
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+			 -->			
     </dependencies>
 </project>
 
