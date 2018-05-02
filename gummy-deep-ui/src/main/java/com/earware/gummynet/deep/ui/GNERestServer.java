@@ -1,4 +1,4 @@
-package com.earware.gummynet.deep.ui;
+	package com.earware.gummynet.deep.ui;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,18 +33,9 @@ public class GNERestServer {
     		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 	        server.start();
 
-	        int l=0;
-	        while (true) {
-	        	String s=server.dump();
-	        	if (s.length()>l) {
-	        		String more = s.substring(l);
-	            	System.err.println(more);
-	            	l=s.length();
-	        	} else {
-	        		Thread.sleep(1000);
-	        	}
-	        }
-	        // server.join();
+	        server.dumpStdErr();
+	        
+	        server.join();
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
