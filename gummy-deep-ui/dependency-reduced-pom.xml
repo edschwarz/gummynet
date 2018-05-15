@@ -9,7 +9,7 @@
   <groupId>com.earware.gummynet</groupId>
   <artifactId>gummy-deep-ui</artifactId>
   <packaging>war</packaging>
-  <name>gummy-deepi-ui</name>
+  <name>gummy-deep-ui</name>
   <version>${project.version}</version>
   <build>
     <plugins>
@@ -36,32 +36,65 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <transformers>
-                <transformer>
-                  <resource>reference.conf</resource>
-                </transformer>
-                <transformer />
-                <transformer>
-                  <mainClass>org.earware.gummynet.deep.ui.GNERestServer</mainClass>
-                </transformer>
-              </transformers>
+              <artifactSet>
+                <excludes>
+                  <exclude>com.earware.gummynet:gummy-deep:*</exclude>
+                  <exclude>org.nd4:*</exclude>
+                  <exclude>org.deeplearning4j:*</exclude>
+                  <exclude>org.bytedeco:*</exclude>
+                </excludes>
+              </artifactSet>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>webpack build</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>webpack</goal>
+            </goals>
+            <configuration>
+              <environmentVariables>
+                <WAR_NAME>${project.build.finalName}</WAR_NAME>
+              </environmentVariables>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <nodeVersion>v8.11.1</nodeVersion>
+          <npmVersion>5.6.0</npmVersion>
+          <installDirectory>.</installDirectory>
+          <workingDirectory>.</workingDirectory>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>com.earware.gummynet</groupId>
+      <artifactId>gummy-deep</artifactId>
+      <version>0.1.1</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>rl4j-examples</artifactId>

@@ -25,6 +25,7 @@ public class GNEScoreboardApi {
 		public double getAvgProgenyScore() {return s.averageProgenyScore();}
 		public double getProgenyContrib() {return s.numSelections<1?0:(s.numProgeny()/s.numSelections)*s.averageProgenyScore();}
 		public String getDqnName() {return new File(s.dqnPath).getName();}
+		public long getAge() {return s.msecInPool()/1000;}
 
 		public String toJSON() {
 			StringWriter w = new StringWriter();
@@ -47,7 +48,7 @@ public class GNEScoreboardApi {
 		return getScoreboardSummary(0);
 	}
 	
-	@PUT
+	@GET
 	@Path("/{howFarBack}")
 	public String getScoreboardSummary(int howFarBack) {
 		return "<html><head/><body><pre>" +

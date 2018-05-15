@@ -5,3 +5,7 @@ bin/
 .settings/
 .project
 junk
+node/
+node_modules/
+etc/
+*.iml

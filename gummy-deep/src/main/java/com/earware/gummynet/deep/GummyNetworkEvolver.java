@@ -10,6 +10,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
@@ -155,7 +156,6 @@ public class GummyNetworkEvolver {
 		if (localConfig.evolvedDqnFilePath==null || localConfig.evolvedDqnFilePath.length()==0) {
 		localConfig.evolvedDqnFilePath = targetDir.getPath() + "/" + LOCAL_EVOLVED_DQN_PATH;
 		}
-		LOGGER.info("copying " + gneStats.modelStats.get(0).dqnPath + " to " + localConfig.evolvedDqnFilePath);
 		fileCopy(new File(gneStats.modelStats.get(0).dqnPath), 
 				new File(localConfig.evolvedDqnFilePath));
 	
@@ -163,6 +163,7 @@ public class GummyNetworkEvolver {
     }
     
     protected File fileCopy(File source, File target) throws IOException {
+			LOGGER.info("copying " + source.getPath() + " to " + target.getPath());
     		return Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile();
     }
 
@@ -410,10 +411,21 @@ public class GummyNetworkEvolver {
     //******************************************************
     public static class Stats {
     		long startTime=System.currentTimeMillis();
+    		long endTime=-1;
     		int modelsSpawned=0;
     		int progenyCreated=0;
     		List<GNEParentPool.GneParentStats> modelStats;
-    		public String toString() {return "GNE STATS: startTime=" + startTime + " modelsSpawned=" + modelsSpawned + " progenyCreated=" + progenyCreated;}
+    		long elapsed() {return (endTime>0?endTime:System.currentTimeMillis())-startTime;}
+    		public String toString() {return "GNE STATS: startTime=" + new Date(startTime) + " modelsSpawned=" + modelsSpawned + " progenyCreated=" + progenyCreated + " elapsed=" + hms(elapsed());}
+    		
+    		private String hms(long millis) {
+    			long seconds = millis / 1000;
+    			long s = seconds % 60;
+    			long m = (seconds / 60) % 60;
+    			long h = (seconds / (60 * 60));
+    			return String.format("%d:%02d:%02d", h,m,s);
+    		}
+    		
     }
     
     protected static Logger LOGGER = Logger.getLogger(GummyNetworkEvolver.class.getName()); 

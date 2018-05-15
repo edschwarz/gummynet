@@ -70,12 +70,21 @@ public class GneParentPoolScoreboard {
 				+ String.format(" score=%2.4f",s.score())
 				+ String.format(" winRatio=%2.4f",s.playStats.p1WinRatio())
 				+ String.format(" fit=%2.4f",s.playStats.p1Fitness())
+				+ String.format(" progContrib=%2.4f",s.numSelections<1?0:(((double)s.numProgeny())/((double)s.numSelections))*s.averageProgenyScore())
 				+ String.format(" raw=%2.4f",s.playStats.p1Fitness()*s.playStats.p1WinRatio())
 				+ String.format(" numSel=%d",s.numSelections)
 				+ String.format(" numProgeny=%d",s.numProgeny())
 				+ String.format(" avgProgScore=%2.4f",s.averageProgenyScore())
-				+ String.format(" progContrib=%2.4f",s.numSelections<1?0:(((double)s.numProgeny())/((double)s.numSelections))*s.averageProgenyScore())
+				+ " age=" + hms(s.msecInPool())
 				+ " " + new File(s.dqnPath).getName()
 				+ "\n";
+	}
+	
+	private String hms(long millis) {
+		long seconds = millis / 1000;
+		long s = seconds % 60;
+		long m = (seconds / 60) % 60;
+		long h = (seconds / (60 * 60));
+		return String.format("%d:%02d:%02d", h,m,s);
 	}
 }

@@ -17,6 +17,8 @@ public class GNEParentPool {
 		public GummyDeepPlayGin.Stats playStats=null;
 		public ArrayList<GneParentStats> progenyStats = new ArrayList<GneParentStats>();
 		public int numSelections=0;
+		public long poolEntryTime=System.currentTimeMillis();
+		
 		public GneParentStats(String dqnPath, GummyDeepPlayGin.Stats playStats) {
 			this.dqnPath= dqnPath; 
 			this.playStats=playStats;
@@ -31,6 +33,7 @@ public class GNEParentPool {
 		}
 		
 		public double averageProgenyScore() {
+			if (progenyStats.size()==0) return 0;
 			double totScore=0; 
 			for (GneParentStats stats : progenyStats) totScore+=stats.score();
 			return totScore/progenyStats.size();
@@ -42,6 +45,10 @@ public class GNEParentPool {
 		
 		public int numProgeny() {
 			return progenyStats.size();
+		}
+		
+		public long msecInPool() {
+			return System.currentTimeMillis() - this.poolEntryTime;
 		}
 		
 		@Override
