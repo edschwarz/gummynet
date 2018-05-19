@@ -26,7 +26,7 @@ public class GNEScoreboardApi {
 		public int    getNumSelected() {return e.stats.numSelections;}
 		public int    getNumProgeny() {return e.stats.numProgeny();};
 		public double getAvgProgenyScore() {return e.stats.averageProgenyScore();}
-		public double getProgenyContrib() {return e.stats.numSelections<1?0:(e.stats.numProgeny()/e.stats.numSelections)*e.stats.averageProgenyScore();}
+		public double getProgenyContrib() {return e.stats.numSelections<1?0:(((double)e.stats.numProgeny())/((double)e.stats.numSelections))*e.stats.averageProgenyScore();}
 		public String getDqnName() {return new File(e.stats.dqnPath).getName();}
 		public long getAge() {return e.stats.msecInPool()/1000;}
 
