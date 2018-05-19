@@ -8,4 +8,5 @@ junk
 node/
 node_modules/
 etc/
+package-lock.json
 *.iml

@@ -5,13 +5,11 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 var production = process.argv.reduce(function(p, c){return p || c == '-p'}, false)
 
 var config = {
+	mode: "production", 
     context: path.join(__dirname, '/src/main/jsx'),
     entry: {
         app:'./app.jsx', // './gneScoreboard.jsx',
- //       vendor: [
- //           'babel-polyfill',
- //           'react', 'react-dom', 'react-table'
- //       ],
+
     },
     output: {
     	/// HACK for warfile name
@@ -31,15 +29,19 @@ var config = {
             {
                 test: /\.jsx$|\.js$/,
                 exclude: /(node_modules)/,
-                loaders: production ? ['babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2'] : 
-                					// ['react-hot-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2']
-									  ['babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2']
+                use: [{loader: "babel-loader",
+                	   options: {
+                		   presets: ["react", ["es2015", {modules: false}], "stage-2"]
+                	   }
+                }]
+                //loader: production ? ['babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2'] : 
+                //					// ['react-hot-loader', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2']
+				//					  ['babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-2']
             }
         ]
     },
     plugins: [
         new ExtractTextPlugin(path.normalize('[name].css')),
-        new ExtractTextPlugin(path.normalize('[name].less')),
     ],
     stats:{
         children: false

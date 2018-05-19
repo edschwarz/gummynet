@@ -196,9 +196,13 @@ public class GummyNetworkEvolver {
     GNEParentPool parentPool = null; 
     Stats gneStats = null;
     public Stats getStats() { updateStats(); return gneStats; }
-    public String getScoreboardString(int howFarBack) { return parentPool!=null? 
-    		parentPool.getScoreboard().scoreboardString(howFarBack) 
-    		: ""; }
+    public GneParentPoolScoreboard getScoreboard() { return parentPool!=null?
+    		parentPool.getScoreboard():null;
+    }
+    public String getScoreboardString(int howFarBack) { 
+    	GneParentPoolScoreboard s = getScoreboard();
+    	return s!=null?s.scoreboardString(howFarBack) : ""; 
+    }
     private void updateStats() {
     	if (gneStats !=null) {
     		gneStats.modelStats = parentPool.getStatsList();

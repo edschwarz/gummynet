@@ -2,39 +2,44 @@ package com.earware.gummynet.deep.ui;
 
 import java.io.File;
 import java.io.StringWriter;
+import java.util.List;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 import org.json.*;
 
-import com.earware.gummynet.deep.GNEParentPool.GneParentStats;
+import com.earware.gummynet.deep.GneParentPoolScoreboard;
 import com.earware.gummynet.deep.GummyNetworkEvolver;
+import com.earware.gummynet.deep.GneParentPoolScoreboard.ScoreboardEntry;
 
 @Path("/GNEScoreboardApi")
 public class GNEScoreboardApi {
-	private static class GneParentStatsBeanWrapper {
-		GneParentStats s;
-		public double getScore() {return s.score();} 
-		public double getWinRatio() {return s.playStats.p1WinRatio();}
-		public double getFitness() {return s.playStats.p1Fitness(); }
-		public double getRaw() {return s.playStats.p1Fitness()*s.playStats.p1WinRatio();}
-		public int    getNumSelected() {return s.numSelections;}
-		public int    getNumProgeny() {return s.numProgeny();};
-		public double getAvgProgenyScore() {return s.averageProgenyScore();}
-		public double getProgenyContrib() {return s.numSelections<1?0:(s.numProgeny()/s.numSelections)*s.averageProgenyScore();}
-		public String getDqnName() {return new File(s.dqnPath).getName();}
-		public long getAge() {return s.msecInPool()/1000;}
+	public static class ScoreboardEntryWrapper {
+		ScoreboardEntry e;
+		public double getCount() {return e.count;} 
+		public double getScore() {return e.stats.score();} 
+		public double getWinRatio() {return e.stats.playStats.p1WinRatio();}
+		public double getFitness() {return e.stats.playStats.p1Fitness(); }
+		public double getRaw() {return e.stats.playStats.p1Fitness()*e.stats.playStats.p1WinRatio();}
+		public int    getNumSelected() {return e.stats.numSelections;}
+		public int    getNumProgeny() {return e.stats.numProgeny();};
+		public double getAvgProgenyScore() {return e.stats.averageProgenyScore();}
+		public double getProgenyContrib() {return e.stats.numSelections<1?0:(e.stats.numProgeny()/e.stats.numSelections)*e.stats.averageProgenyScore();}
+		public String getDqnName() {return new File(e.stats.dqnPath).getName();}
+		public long getAge() {return e.stats.msecInPool()/1000;}
 
 		public String toJSON() {
 			StringWriter w = new StringWriter();
-			new JSONObject(this).write(w);
+			JSONObject job = new JSONObject(this);
+			job.write(w);
+			w.flush();
 			return w.toString();
 		}
 		
-		GneParentStatsBeanWrapper(GneParentStats s) {this.s=s;}
-		public static String toJSONString(GneParentStats s) {return new GneParentStatsBeanWrapper(s).toJSON();}
+		ScoreboardEntryWrapper(ScoreboardEntry e) {this.e=e;}
+		public static String toJSONString(ScoreboardEntry s) {return new ScoreboardEntryWrapper(s).toJSON();}
 	}
 	
 	private GummyNetworkEvolver evolver() {return GummyNetworkEvolver.getLatestInstance();}
@@ -50,23 +55,36 @@ public class GNEScoreboardApi {
 	
 	@GET
 	@Path("/{howFarBack}")
-	public String getScoreboardSummary(int howFarBack) {
-		return "<html><head/><body><pre>" +
-				_getScoreboardSummary(howFarBack)
-				+ "</pre></body></html>";
+	public String getScoreboardSummary(@PathParam("howFarBack") int howFarBack) {
+		return _getScoreboardSummary(howFarBack);
 	}
 	
+	private static final String NO_MODELS_RESPONSE = "{\"score\": \"no models yet\"}"; 
 	private String _getScoreboardSummary(int howFarBack) {
 		GummyNetworkEvolver evolver = evolver();
+//		if (evolver.getStats()!=null) {
+		//	rez += evolver.getStats().toString() + "\n";
+//		}
 		if (evolver!=null) {
-			String rez = "";
-			if (evolver.getStats()!=null) {
-				rez += evolver.getStats().toString() + "\n";
+			String rez = "[";
+			GneParentPoolScoreboard s = evolver.getScoreboard();
+			if (s!=null) {
+				List<ScoreboardEntry> entries = s.scoreboard(howFarBack);
+				if (entries.size()>0) {
+					for (ScoreboardEntry e : entries) {
+						rez += ScoreboardEntryWrapper.toJSONString(e);
+						rez += ",";
+					}
+					// strip last comma
+					rez = rez.substring(0, rez.length()-1);
+				} else {
+					rez += NO_MODELS_RESPONSE; 
+				}
 			}
-			rez += evolver.getScoreboardString(howFarBack);
+			rez += "]";
 			return rez;
 		} 
-		return "no stats list";
+		return NO_MODELS_RESPONSE;
 	}
 }
 

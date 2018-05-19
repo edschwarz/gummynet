@@ -21,6 +21,7 @@ public class GneParentPoolScoreboard {
 		public int count=0;
 		public GneParentStats stats;
 		ScoreboardEntry(int count, GneParentStats stats) {this.count=count; this.stats=stats;}
+		public String toString() {return "count="+count+ "  " + stats.toString();}
 	}
 	public String scoreboardString(int howFarBack) {
 		String rez = "";

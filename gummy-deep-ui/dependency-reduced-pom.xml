@@ -76,6 +76,7 @@
               <environmentVariables>
                 <WAR_NAME>${project.build.finalName}</WAR_NAME>
               </environmentVariables>
+              <arguments>--verbose</arguments>
             </configuration>
           </execution>
         </executions>
