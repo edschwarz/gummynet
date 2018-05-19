@@ -18,26 +18,17 @@ public class GNERestServer {
     		Log.setLog(new StdErrLog());
     		LOGGER.info("Rest Server Startup at " + new Date());
 
-    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
     		LOGGER.info("Rest Server: creating Server");
 	        Server server = new Server(8080);
     		LOGGER.info("Rest Server: creating Server completed... " + elapsed() + " msec");
 	        
-    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
     		LOGGER.info("Rest Server: configuring webapp gummy-rest");
 	        WebAppContext context = new WebAppContext();
-
-    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
     		context.setContextPath("/gummy-rest");
-
-    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 	        String jettyHome = System.getenv("JETTY_HOME");
             context.setWar(jettyHome + "/webapps/gummy-rest.war");
             context.setAttribute("args", args);
-            
-            context.setLogger(new org.eclipse.jetty.util.log.JavaUtilLog(LOGGER_NAME));
-            
-    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
+            context.setLogger(new org.eclipse.jetty.util.log.JavaUtilLog(LOGGER_NAME));            
             server.setHandler(context);
     		LOGGER.info("Rest Server: configuring webapp gummy-rest completed... " + elapsed() + " msec");
 	        
@@ -63,29 +54,21 @@ public class GNERestServer {
     private void startRestServer(int port, Object gummyNetworkEvolver) {
 		new Thread(new Runnable() {public void run() {
 			try {
+				
+	    		Log.setLog(new StdErrLog());
 	    		LOGGER.info("Rest Server Startup at " + new Date());
 
-	    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 	    		LOGGER.info("Rest Server: creating Server");
-		        Server server = new Server(port);
+		        Server server = new Server(8080);
 	    		LOGGER.info("Rest Server: creating Server completed... " + elapsed() + " msec");
 		        
-	    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 	    		LOGGER.info("Rest Server: configuring webapp gummy-rest");
 		        WebAppContext context = new WebAppContext();
-
-	    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 	    		context.setContextPath("/gummy-rest");
-
-	    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
 		        String jettyHome = System.getenv("JETTY_HOME");
 	            context.setWar(jettyHome + "/webapps/gummy-rest.war");
-	            
 	            context.setAttribute("gummyNetworkEvolver", gummyNetworkEvolver);
-	            
-	            context.setLogger(new org.eclipse.jetty.util.log.JavaUtilLog(LOGGER_NAME));
-	            
-	    		Logger.getLogger("org.eclipse.jetty").setLevel(Level.FINEST);
+	            context.setLogger(new org.eclipse.jetty.util.log.JavaUtilLog(LOGGER_NAME));            
 	            server.setHandler(context);
 	    		LOGGER.info("Rest Server: configuring webapp gummy-rest completed... " + elapsed() + " msec");
 		        
@@ -94,9 +77,11 @@ public class GNERestServer {
 		        server.start();
 	    		LOGGER.info("Rest Server: completed starting Server... " + elapsed() + " msec");
 
-	    		LOGGER.info(server.dump());
+		        server.dumpStdErr();
 		        
-	    		LOGGER.info("Rest Server: Server is off doing his own thing - my work here is done...");
+	    		LOGGER.info("Rest Server: joining Server - my work here is done...");
+		        server.join();
+		        
 			} catch (Exception e) {
 	    		LOGGER.info("Rest Server: exception during UI startup: " + e.getLocalizedMessage() );
 					e.printStackTrace();
