@@ -8,11 +8,23 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.earware.gummynet</groupId>
   <artifactId>gummy-deep-ui</artifactId>
-  <packaging>war</packaging>
   <name>gummy-deep-ui</name>
   <version>${project.version}</version>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <id>package-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>war</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
@@ -41,6 +53,12 @@
             <goals>
               <goal>jar</goal>
             </goals>
+            <configuration>
+              <includes>
+                <include>**/webapp.war</include>
+                <include>**/com/**/*</include>
+              </includes>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -53,16 +71,6 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration>
-              <artifactSet>
-                <excludes>
-                  <exclude>com.earware.gummynet:gummy-deep:*</exclude>
-                  <exclude>org.nd4:*</exclude>
-                  <exclude>org.deeplearning4j:*</exclude>
-                  <exclude>org.bytedeco:*</exclude>
-                </excludes>
-              </artifactSet>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -107,58 +115,6 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>com.earware.gummynet</groupId>
-      <artifactId>gummy-deep</artifactId>
-      <version>0.1.1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.deeplearning4j</groupId>
-      <artifactId>rl4j-examples</artifactId>
-      <version>0.9.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-ui_2.11</artifactId>
-      <version>0.9.1</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>deeplearning4j-play_2.11</artifactId>
-          <groupId>org.deeplearning4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>commons-io</artifactId>
-          <groupId>commons-io</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>deeplearning4j-nlp</artifactId>
-          <groupId>org.deeplearning4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>nd4j-jackson</artifactId>
-          <groupId>org.nd4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>deeplearning4j-ui-model</artifactId>
-          <groupId>org.deeplearning4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>deeplearning4j-ui-resources</artifactId>
-          <groupId>org.deeplearning4j</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.earware.gummynet</groupId>
-      <artifactId>gummy-gin</artifactId>
-      <version>0.1.1</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
   <properties>
     <jersey.version>2.25</jersey.version>
     <rl4j.version>0.9.1</rl4j.version>

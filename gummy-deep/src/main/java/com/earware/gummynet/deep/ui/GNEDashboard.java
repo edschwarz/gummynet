@@ -13,7 +13,6 @@ import com.earware.gummynet.deep.GummyNetworkEvolver;
 
 public class GNEDashboard extends ResourceConfig {
 	GummyNetworkEvolver evolver = null;
-	private long initTime=System.currentTimeMillis();
 
 	public GNEDashboard(@Context ServletContext servletContext) {
 		LOGGER.info("GNEDashboard: webapp initialized by container at " + new Date());
@@ -21,7 +20,17 @@ public class GNEDashboard extends ResourceConfig {
 		LOGGER.info("GNEDashboard: scanning for rest services...");
 		packages("com.earware.gummynet.deep.ui");
 		LOGGER.info("GNEDashboard: scanning for rest services completed");
+
+		Object o = servletContext.getAttribute("gummyNetworkEvolver");
+		if (o!=null) {
+			evolver = (GummyNetworkEvolver)(o);
+			LOGGER.info("GNEDashboard: retrieved GummyNetworkEvolver: " + evolver);
+		} else {
+			LOGGER.severe("GNEDashboard: GummyNetworkEvolver was not found.... "
+					+ "no UX will be displayed");
+		}
 		
+		/*
 		Object o = servletContext.getAttribute("args");
 		if (o!=null) {
 			String[] args = (String[])(o);
@@ -37,10 +46,11 @@ public class GNEDashboard extends ResourceConfig {
 				evolver = (GummyNetworkEvolver)(o);
 				LOGGER.info("GNEDashboard: retrieved GummyNetworkEvolver: " + evolver);
 			}
-		}		
-		LOGGER.info("GNEDashboard: scanning for rest services completed");
+		}
+		*/		
 	}
 		
+/*	
     private static GummyNetworkEvolver startGNE(GummyNetworkEvolver.Config gneConfig) {
 		final GummyNetworkEvolver evolver = new GummyNetworkEvolver();
 		new Thread(new Runnable() {public void run() {
@@ -60,7 +70,8 @@ public class GNEDashboard extends ResourceConfig {
 		
 		return evolver; 
     }
+    */
     
     GummyNetworkEvolver getEvolver() {return evolver;}	
-    protected static Logger LOGGER = Logger.getLogger(GNERestServer.class.getName()); 
+    protected static Logger LOGGER = Logger.getLogger(GNEDashboard.class.getName()); 
 }

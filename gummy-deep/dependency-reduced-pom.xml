@@ -31,6 +31,13 @@
                     <exclude>META-INF/*.RSA</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>com.earware.gummynet:gummy-deep-ui</artifact>
+                  <includes>
+                    <include>**/webapp.war</include>
+                    <include>**/com/**/*</include>
+                  </includes>
+                </filter>
               </filters>
               <transformers>
                 <transformer>
@@ -38,7 +45,7 @@
                 </transformer>
                 <transformer />
                 <transformer>
-                  <mainClass>org.earware.gummynet.deep.GummyRunner</mainClass>
+                  <mainClass>org.earware.gummynet.deep.GNE</mainClass>
                 </transformer>
               </transformers>
             </configuration>

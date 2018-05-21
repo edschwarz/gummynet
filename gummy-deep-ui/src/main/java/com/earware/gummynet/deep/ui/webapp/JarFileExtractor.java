@@ -1,4 +1,4 @@
-package com.earware.gummynet.deep.ui;
+package com.earware.gummynet.deep.ui.webapp;
 
 import java.io.*;
 

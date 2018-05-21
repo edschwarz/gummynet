@@ -3,6 +3,7 @@ package com.earware.gummynet.deep.ui;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -59,32 +60,34 @@ public class GNEScoreboardApi {
 		return _getScoreboardSummary(howFarBack);
 	}
 	
-	private static final String NO_MODELS_RESPONSE = "{\"score\": \"no models yet\"}"; 
+	private static final String NO_MODELS_RESPONSE = "[{\"score\": \"no models yet\"}]"; 
 	private String _getScoreboardSummary(int howFarBack) {
 		GummyNetworkEvolver evolver = evolver();
 //		if (evolver.getStats()!=null) {
 		//	rez += evolver.getStats().toString() + "\n";
 //		}
 		if (evolver!=null) {
-			String rez = "[";
+			String rez="";
 			GneParentPoolScoreboard s = evolver.getScoreboard();
 			if (s!=null) {
 				List<ScoreboardEntry> entries = s.scoreboard(howFarBack);
 				if (entries.size()>0) {
+					rez = "[";
 					for (ScoreboardEntry e : entries) {
 						rez += ScoreboardEntryWrapper.toJSONString(e);
 						rez += ",";
 					}
 					// strip last comma
 					rez = rez.substring(0, rez.length()-1);
+					rez += "]";
 				} else {
 					rez += NO_MODELS_RESPONSE; 
 				}
 			}
-			rez += "]";
 			return rez;
 		} 
 		return NO_MODELS_RESPONSE;
-	}
+	}	
+    protected static Logger LOGGER = Logger.getLogger(GNEDashboard.class.getName()); 
 }
 

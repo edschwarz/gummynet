@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 import com.earware.gummynet.deep.GummyNetworkEvolver.Config;
+import com.earware.gummynet.deep.ui.webapp.GNERestServer;
 
 
 public class GNE {
@@ -23,14 +24,16 @@ public class GNE {
         if (config==null) return; // bad args
 		
         try {
-        		GummyNetworkEvolver.Stats evolvedStats 
-        				= new GummyNetworkEvolver().evolve(config);
+        	GummyNetworkEvolver evolver = new GummyNetworkEvolver();
+        	GNERestServer restServer = new GNERestServer(8080,evolver);
+        	GummyNetworkEvolver.Stats evolvedStats 
+        				= evolver.evolve(config);
         		
-        		if (evolvedStats!=null) {
-        			LOGGER.info("main: winner: " + evolvedStats.toString());
-        		} else {
-        			LOGGER.info("main: no survivors");
-        		}
+        	if (evolvedStats!=null) {
+        		LOGGER.info("main: winner: " + evolvedStats.toString());
+        	} else {
+        		LOGGER.info("main: no survivors");
+        	}
         } catch (Exception e) {
     			e.printStackTrace();
         }

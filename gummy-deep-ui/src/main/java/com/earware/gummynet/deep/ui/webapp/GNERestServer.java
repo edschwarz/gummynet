@@ -1,4 +1,4 @@
-	package com.earware.gummynet.deep.ui;
+package com.earware.gummynet.deep.ui.webapp;
 
 import java.util.Date;
 import java.util.logging.Level;
@@ -12,14 +12,17 @@ import org.eclipse.jetty.util.log.StdErrLog;
 public class GNERestServer {
 	private static String LOGGER_NAME = GNERestServer.class.getName();
 	private static String WEBAPP_RESOURCES_LOCATION = "/webapp.war";
+	
+	/*
 	public static void main( String[] args ) 
     {
     	new GNERestServer().runServer(args);
     }
     public void runServer(String[] args) {	
     	runServer( 8080,"args", args);
-    }
-        
+    }  
+	 */
+	
     public GNERestServer(int port, Object gummyNetworkEvolver) {
     	runRestServer(port, gummyNetworkEvolver);
     }
