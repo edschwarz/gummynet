@@ -15,7 +15,7 @@ import com.earware.gummynet.deep.GneParentPoolScoreboard;
 import com.earware.gummynet.deep.GummyNetworkEvolver;
 import com.earware.gummynet.deep.GneParentPoolScoreboard.ScoreboardEntry;
 
-@Path("/GNEScoreboardApi")
+@Path("/scoreboard")
 public class GNEScoreboardApi {
 	public static class ScoreboardEntryWrapper {
 		ScoreboardEntry e;
@@ -62,12 +62,12 @@ public class GNEScoreboardApi {
 	
 	private static final String NO_MODELS_RESPONSE = "[{\"score\": \"no models yet\"}]"; 
 	private String _getScoreboardSummary(int howFarBack) {
+		String rez=NO_MODELS_RESPONSE;
 		GummyNetworkEvolver evolver = evolver();
 //		if (evolver.getStats()!=null) {
 		//	rez += evolver.getStats().toString() + "\n";
 //		}
 		if (evolver!=null) {
-			String rez="";
 			GneParentPoolScoreboard s = evolver.getScoreboard();
 			if (s!=null) {
 				List<ScoreboardEntry> entries = s.scoreboard(howFarBack);
@@ -80,13 +80,10 @@ public class GNEScoreboardApi {
 					// strip last comma
 					rez = rez.substring(0, rez.length()-1);
 					rez += "]";
-				} else {
-					rez += NO_MODELS_RESPONSE; 
 				}
 			}
-			return rez;
 		} 
-		return NO_MODELS_RESPONSE;
+		return rez;
 	}	
     protected static Logger LOGGER = Logger.getLogger(GNEDashboard.class.getName()); 
 }
