@@ -68,6 +68,12 @@ public class GummyDeepPlayGin {
 		public double p2Fitness() {
 			return GummySmartGinStrategy.evaluateHistogramFit(this.p2WinHistogram);
 		}
+		public String p1WinHistogramFormatted() {
+			return GummySmartGinStrategy.formatHistogram(this.p1WinHistogram);
+		}
+		public String p2WinHistogramFormatted() {
+			return GummySmartGinStrategy.formatHistogram(this.p2WinHistogram);
+		}
 	}
 	
 	public static Stats play(String model1, String model2, int count, int reportingInterval) {
@@ -119,11 +125,11 @@ public class GummyDeepPlayGin {
 		LOGGER.info(report(stats));
 		if (getGinStrategy(model1, rewards1) instanceof GummyDeepGinStrategy) {
 			LOGGER.info("histogram for model " + model1);
-			LOGGER.info(GummySmartGinStrategy.formatHistogram(stats.p1WinHistogram));
+			LOGGER.info(stats.p1WinHistogramFormatted());
 		}
 		if (getGinStrategy(model2, rewards2) instanceof GummyDeepGinStrategy) {
 			LOGGER.info("histogram for model " + model2);
-			LOGGER.info(GummySmartGinStrategy.formatHistogram(stats.p2WinHistogram));
+			LOGGER.info(stats.p2WinHistogramFormatted());
 		}
 		return stats;
 	}
