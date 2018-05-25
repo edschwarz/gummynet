@@ -240,7 +240,7 @@ public class GummyNetworkEvolver {
 			String parentDqnPath = parentPool.getParentFromPool();
     		if (parentDqnPath != null) {
     			File parentDqnFile = new File(parentDqnPath);
-    			File f = new File(tmpDir, parentDqnFile.getName() + "GummyNetworkEvolver.dqnCopy." + progeny);
+    			File f = new File(tmpDir, parentDqnFile.getName() + "." + progeny);
     			fileCopy(parentDqnFile, f);
     			progenyPath = f.getPath();
     			LOGGER.info("SPAWN - model " + progeny + ": copied from source " + parentDqnPath);
