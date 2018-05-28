@@ -124,7 +124,7 @@ class App extends React.Component {
 				onChange={this.handleHowFarBackChange}
 				onBlur={this.handleHowFarBackBlur}/>
 				<em/>
-				<button onclick={this.refreshData}>Refresh</button>
+				<button onClick={this.refreshData}>Refresh</button>
 				</p>
 				</div>
 				<ReactTable
@@ -194,12 +194,17 @@ const scoreboardColumns = [
 				accessor: "fitness"
 			},
 			{
-				Header: "Times Selected",
+				Header: "Turns/Hand",
+				id: "turnsPerHand",
+				accessor: "turnsPerHand"
+			},
+			{
+				Header: "Selected",
 				id: "numSelected",
 				accessor: "numSelected"
 			},
 			{
-				Header: "Progeny Created",
+				Header: "Progeny",
 				id: "numProgeny",
 				accessor: "numProgeny"
 			},
