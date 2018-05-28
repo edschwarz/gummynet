@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { Logo, Tips } from "./Utils";
+import { Logo, Tips, scoreFormat, fitnessFormat, percentFormat, floatFormat } from "./Utils";
 
 //Import React Table
 import ReactTable from "react-table";
@@ -11,10 +11,10 @@ console.log("crang!");
 
 class App extends React.Component {
 
-	getScoreboardFromServer(path) {
+	getFromServer(path, stateVar) {
 		var respclone;
 		var myComponent = this; 
-		var url = '/gummy-rest/rest/scoreboard/' + path;
+		var url = '/gummy-rest/rest/' + path;
 		fetch(url)
 		.then(function(response) {
 			respclone = response.clone();
@@ -22,33 +22,23 @@ class App extends React.Component {
 		})
 		.then(function(data) {
 			// Do what you want with your data
-			myComponent.setState({scoreboard:data});
+			myComponent.setState({[stateVar]:data});
 		})
 		.catch(function(err) {
 			respclone.text()
 			.then(function(text) {
-				console.error('An error ocurred on response "' + text + '":',err);
+				console.error('An error ocurred fetching ' + stateVar + ': response: "' + text + '"  error: ',err);
 			});
 		});
 	}
 
+	getScoreboardFromServer(howFarBack) {
+		var path = 'scoreboard/' + howFarBack;
+		this.getFromServer(path, "scoreboard")
+	}
+
 	getSummaryFromServer() {
-		var respclone;
-		var myComponent = this; 
-		fetch('/gummy-rest/rest/summary')
-		.then(function(response) {
-			respclone = response.clone();
-			return response.json(); 
-		})
-		.then(function(data) {
-			// Do what you want with your data
-			myComponent.setState({summary:data});
-		})
-		.catch(function(err) {
-			respclone.text().then(function(text) {
-				console.error('An error ocurred on response "' + text + '":',err);
-			});
-		});
+		this.getFromServer("summary", "summary")
 	}
 
 	refreshData() {
@@ -56,7 +46,6 @@ class App extends React.Component {
 			this.getSummaryFromServer();
 			this.getScoreboardFromServer(this.state.scoreboardHowFarBack);
 		} catch(error) {console.error("error refreshing data: " + error);}
-
 	}  
 
 	constructor() {
@@ -113,46 +102,58 @@ class App extends React.Component {
 		const { scoreboard } = this.state;
 		const { scoreboardHowFarBack } = this.state;
 		const { howFarBackVal } = this.state;
-		console.log("render - howFarBackVal:" + this.state.howFarBackVal + "  scoreboardHowFarBack:" + this.state.scoreboardHowFarBack);
 		return (
 				<div>
-				<div>
-				<p>{summary.summary}
-				<br/>
-				<input type="text" 
-				value={howFarBackVal} 
-				onChange={this.handleHowFarBackChange}
-				onBlur={this.handleHowFarBackBlur}/>
-				<em/>
-				<button onClick={this.refreshData}>Refresh</button>
-				</p>
-				</div>
-				<ReactTable
-				data={scoreboard}
-				columns={scoreboardColumns}
-				defaultPageSize={20}
-				minRows={3}
-				className="-striped -highlight"
-				SubComponent={row =>{
-					return (
-							<div style={{ padding: "20px" }}>
-							<br />
-							<pre>
-							{row.original.histogram}
-							</pre>
-							<br />
-							</div>
-					);
-				}}
-				/>
-				<br />
-				<Tips />
-				<Logo />
+					<div>
+						<p>
+						{summary.summary}
+						<br/>
+						<input type="text" 
+							value={howFarBackVal} 
+							onChange={this.handleHowFarBackChange}
+							onBlur={this.handleHowFarBackBlur}/>
+						<em/>
+						<button onClick={this.refreshData}>Refresh</button>
+						</p>
+					</div>
+					<ReactTable
+						data={scoreboard}
+						columns={scoreboardColumns}
+						defaultPageSize={20}
+						minRows={3}
+						className="-striped -highlight"
+						SubComponent={row =>{
+							return (
+								<div style={{ padding: "20px" }}>
+									<br />
+									<pre>{row.original.histogram}</pre>
+									<br />
+								</div>
+								);
+							}}
+					/>
+					<br />
+					<Tips />
+					<Logo />
 				</div>
 		);
 	}
 
 }
+
+function isNumeric(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
+function nformat(number, format) {
+	return isNumeric(number) ? format.format(number) :
+			typeof number == 'undefined' ? "" 
+					: number;} 
+function hms(seconds) {
+	var fmt = new Intl.NumberFormat('en-US',{style: 'decimal', minimumIntegerDigits: '2' });
+	var s = seconds % 60;
+    var m = Math.floor(seconds / 60) % 60;
+    var h = Math.floor(seconds / (60 * 60));
+    return h + ':' + fmt.format(m) + ':' + 	fmt.format(s);
+}
+
 
 const scoreboardColumns = [
 	{
@@ -166,17 +167,20 @@ const scoreboardColumns = [
 			{
 				Header: "Score",
 				id: "score",
-				accessor: "score"
+				accessor: "score",
+				Cell: props => (nformat(props.original.score,scoreFormat))
 			},
 			{
 				Header: "Raw",
 				id: "raw",
-				accessor: "raw"
+				accessor: "raw",
+				Cell: props => (nformat(props.original.raw,floatFormat))
 			},
 			{
 				Header: "Progeny Contrib",
 				id: "progenyContrib",
-				accessor: "progenyContrib"
+				accessor: "progenyContrib",
+				Cell: props => (nformat(props.original.progenyContrib,floatFormat))
 			}
 			]
 	},
@@ -186,12 +190,14 @@ const scoreboardColumns = [
 			{
 				Header: "Win Ratio",
 				id: "winRatio",
-				accessor: "winRatio"
+				accessor: "winRatio",
+				Cell: props => (nformat(props.original.winRatio,percentFormat))
 			},
 			{
 				Header: "Fitness",
 				id: "fitness",
-				accessor: "fitness"
+				accessor: "fitness",
+				Cell: props => (nformat(props.original.fitness,fitnessFormat))
 			},
 			{
 				Header: "Turns/Hand",
@@ -211,12 +217,14 @@ const scoreboardColumns = [
 			{
 				Header: "Avg Progeny Score",
 				id: "avgProgenyScore",
-				accessor: "avgProgenyScore"
+				accessor: "avgProgenyScore",
+				Cell: props => (nformat(props.original.avgProgenyScore,scoreFormat))
 			},
 			{
 				Header: "Age",
 				id: "age",
-				accessor: "age"
+				accessor: "age",
+				Cell: props => (hms(props.original.age))
 			},
 			{
 				Header: "Model Name",
@@ -227,9 +235,6 @@ const scoreboardColumns = [
 	},
 	];
 
-console.log("===> render begins...");
-
+// ///////////////////////////////////////////
 render(<App />, document.getElementById("root"));
-
-console.log("===> render completed!");
 
