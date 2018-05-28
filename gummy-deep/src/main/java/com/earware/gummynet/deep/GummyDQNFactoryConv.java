@@ -95,7 +95,7 @@ public class GummyDQNFactoryConv implements DQNFactory {
                         .weightInit(WeightInit.XAVIER).regularization(true).l2(conf.getL2()).list()
                         .layer(nextLayer++, new ConvolutionLayer.Builder(4, 4)
                         									.nIn(depth)
-                        									.nOut(32)
+                        									.nOut(64)
                         									.stride(1, 1).padding(3,3)
                         									.activation(Activation.RELU)
                         									.build());
@@ -107,7 +107,7 @@ public class GummyDQNFactoryConv implements DQNFactory {
         //					.build());
 
         confB.layer(nextLayer++, new DenseLayer.Builder()
-        					.nOut(8)
+        					.nOut(16)
         					.activation(Activation.RELU)
         					.build());
 
