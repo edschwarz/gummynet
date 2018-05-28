@@ -30,6 +30,7 @@ public class GNEScoreboardApi {
 		public double getProgenyContrib() {return e.stats.numSelections<1?0:(((double)e.stats.numProgeny())/((double)e.stats.numSelections))*e.stats.averageProgenyScore();}
 		public String getDqnName() {return new File(e.stats.dqnPath).getName();}
 		public long getAge() {return e.stats.msecInPool()/1000;}
+		public String getHistogram() {return e.stats.playStats.p1WinHistogramFormatted();}
 
 		public String toJSON() {
 			StringWriter w = new StringWriter();
